@@ -1,0 +1,158 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for user-specific data
+ * and allows for public read access to temple data while restricting writes to authenticated users.
+ *
+ * Data Structure:
+ * - Temples: Top-level collection `/temples/{templeId}` storing temple information.
+ * - Poojas: Subcollection `/temples/{templeId}/poojas/{poojaId}` storing pooja details for each temple.
+ * - Products: Subcollection `/temples/{templeId}/products/{productId}` storing product details for each temple.
+ * - Donations: Top-level collection `/donations/{donationId}` tracking donations made to temples by users.
+ * - Users: Top-level collection `/users/{userId}` storing user profile information.
+ * - Subscriptions: Subcollection `/users/{userId}/subscriptions/{subscriptionId}` storing subscription details for each user.
+ *
+ * Key Security Decisions:
+ * - Temples, Poojas, and Products: Publicly readable (for displaying temple information). Writes are restricted (TODO: require owner validation).
+ * - Donations: Restricting read and write to authenticated users.
+ * - Users: Only a user can read/write their own profile.
+ * - Subscriptions: Only a user can manage their own subscriptions.
+ * - User listing is disallowed.
+ *
+ * Denormalization for Authorization:
+ * - The `Donation` collection denormalizes `templeId` and `userId` to allow direct validation without additional `get()` calls.
+ *   This enables rules to quickly verify that the user is donating to a specific temple.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to temple documents. Allows public read access, but restricts writes.
+     * @path /temples/{templeId}
+     * @allow get, list: Anyone can read or list temples.
+     * @allow create: if false - Temples should not be writable without validation.
+     * @allow update: if false - Temples should not be writable without validation.
+     * @allow delete: if false - Temples should not be writable without validation.
+     * @deny create: if false - placeholder for future implementation
+     * @deny update: if false - placeholder for future implementation
+     * @deny delete: if false - placeholder for future implementation
+     * @principle Allows public read access to temple data. Write operations restricted.
+     */
+    match /temples/{templeId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to pooja documents. Allows public read access, but restricts writes.
+     * @path /temples/{templeId}/poojas/{poojaId}
+     * @allow get, list: Anyone can read or list poojas.
+     * @allow create: if false - Poojas should not be writable without validation.
+     * @allow update: if false - Poojas should not be writable without validation.
+     * @allow delete: if false - Poojas should not be writable without validation.
+     * @deny create: if false - placeholder for future implementation
+     * @deny update: if false - placeholder for future implementation
+     * @deny delete: if false - placeholder for future implementation
+     * @principle Allows public read access to pooja data. Write operations restricted.
+     */
+    match /temples/{templeId}/poojas/{poojaId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to product documents. Allows public read access, but restricts writes.
+     * @path /temples/{templeId}/products/{productId}
+     * @allow get, list: Anyone can read or list products.
+     * @allow create: if false - Products should not be writable without validation.
+     * @allow update: if false - Products should not be writable without validation.
+     * @allow delete: if false - Products should not be writable without validation.
+     * @deny create: if false - placeholder for future implementation
+     * @deny update: if false - placeholder for future implementation
+     * @deny delete: if false - placeholder for future implementation
+     * @principle Allows public read access to product data. Write operations restricted.
+     */
+    match /temples/{templeId}/products/{productId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to donation documents. Donations can be created by authenticated users only.
+     * @path /donations/{donationId}
+     * @allow get: if false - No unvalidated access is permitted.
+     * @allow list: if false - Listing must not be allowed.
+     * @allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid);
+     * @allow update: if false - Update must not be allowed.
+     * @allow delete: if false - Delete must not be allowed.
+     * @deny get: if true;
+     * @deny list: if true;
+     * @deny update: if true;
+     * @deny delete: if true;
+     * @principle Enforces signed-in user validation for all write operations.
+     */
+    match /donations/{donationId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid);
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to user profile documents. Users can only read/write their own profile.
+     * @path /users/{userId}
+     * @allow get: if isOwner(userId);
+     * @allow list: if false - Listing users is not permitted.
+     * @allow create: if isOwner(userId);
+     * @allow update: if isOwner(userId);
+     * @allow delete: if isExistingOwner(userId);
+     * @deny list: if true;
+     * @principle Enforces document ownership for reads and writes.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to user subscription documents. Users can only read/write their own subscriptions.
+     * @path /users/{userId}/subscriptions/{subscriptionId}
+     * @allow get: if isOwner(userId);
+     * @allow list: if isOwner(userId);
+     * @allow create: if isOwner(userId);
+     * @allow update: if isOwner(userId);
+     * @allow delete: if isExistingOwner(userId);
+     * @principle Enforces document ownership for reads and writes.
+     */
+    match /users/{userId}/subscriptions/{subscriptionId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+    function isExistingOwner(userId) {
+    return isOwner(userId) && resource != null;
+  }
+}
