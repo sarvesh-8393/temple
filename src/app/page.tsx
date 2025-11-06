@@ -91,44 +91,6 @@ export default function HomePage() {
       </section>
 
       <main className="container mx-auto px-4 py-12 md:py-20">
-        {/* 2. Value Props Section */}
-        <section className="mb-16 md:mb-24">
-          <h2 className="text-3xl font-headline font-bold text-center mb-2">
-            Why Use Our Platform?
-          </h2>
-          <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-            We provide a seamless and secure bridge between you and your spiritual journey.
-          </p>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="text-center shadow-md">
-              <CardHeader>
-                <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
-                    <HeartHandshake className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="pt-2">Easy Donations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>
-                  Fast & secure online donations through trusted payment gateways.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center shadow-md">
-              <CardHeader>
-                <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
-                    <BookOpen className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="pt-2">Puja Bookings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>
-                  Book your pujas anytime, anywhere, with instant confirmations.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
         {/* 3. Featured Temples Section */}
         <section className="mb-16 md:mb-24">
           <h2 className="text-3xl font-headline font-bold text-center mb-8">
