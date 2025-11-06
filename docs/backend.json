@@ -6,44 +6,70 @@
       "type": "object",
       "description": "Represents a temple registered on the platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the temple."
-        },
-        "name": {
+        "templeName": {
           "type": "string",
           "description": "Name of the temple."
-        },
-        "address": {
-          "type": "string",
-          "description": "Address of the temple."
         },
         "description": {
           "type": "string",
           "description": "Description of the temple."
+        },
+        "address": {
+          "type": "string",
+          "description": "Street address of the temple."
+        },
+        "city": {
+          "type": "string",
+          "description": "City where the temple is located."
+        },
+        "state": {
+          "type": "string",
+          "description": "State or province where the temple is located."
+        },
+        "zipCode": {
+          "type": "string",
+          "description": "ZIP or postal code for the temple's address."
         },
         "contactEmail": {
           "type": "string",
           "description": "Contact email address of the temple.",
           "format": "email"
         },
-        "contactPhone": {
-          "type": "string",
-          "description": "Contact phone number of the temple."
-        },
         "imageUrl": {
           "type": "string",
           "description": "URL of the temple's image.",
           "format": "uri"
+        },
+        "poojas": {
+          "type": "array",
+          "description": "A list of poojas offered by the temple.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "price": {
+                "type": "number"
+              }
+            },
+            "required": ["name", "price"]
+          }
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the temple was registered."
         }
       },
       "required": [
-        "id",
-        "name",
-        "address",
+        "templeName",
         "description",
+        "address",
+        "city",
+        "state",
+        "zipCode",
         "contactEmail",
-        "contactPhone",
         "imageUrl"
       ]
     },
@@ -262,7 +288,7 @@
         "definition": {
           "entityName": "Temple",
           "schema": {
-            "$ref": "#/backend/entities/Temple"
+            "$ref": "#/entities/Temple"
           },
           "description": "Stores information about registered temples. Includes the temple's contact details, address, and image URL.",
           "params": [
@@ -278,7 +304,7 @@
         "definition": {
           "entityName": "Pooja",
           "schema": {
-            "$ref": "#/backend/entities/Pooja"
+            "$ref": "#/entities/Pooja"
           },
           "description": "Stores information about poojas offered by a specific temple. Includes denormalized 'templeId' for authorization independence.",
           "params": [
@@ -298,7 +324,7 @@
         "definition": {
           "entityName": "Product",
           "schema": {
-            "$ref": "#/backend/entities/Product"
+            "$ref": "#/entities/Product"
           },
           "description": "Stores information about products (prasad, religious items) sold by a temple. Includes denormalized 'templeId' for authorization independence.",
           "params": [
@@ -318,7 +344,7 @@
         "definition": {
           "entityName": "Donation",
           "schema": {
-            "$ref": "#/backend/entities/Donation"
+            "$ref": "#/entities/Donation"
           },
           "description": "Stores information about donations made to temples. This is a top-level collection because it relates Users and Temples. The `userId` identifies the donor and the `templeId` identifies the receiving temple. Includes denormalized `templeId` and `userId` for authorization independence.",
           "params": [
@@ -334,7 +360,7 @@
         "definition": {
           "entityName": "User",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/entities/User"
           },
           "description": "Stores user profile information.",
           "params": [
@@ -350,7 +376,7 @@
         "definition": {
           "entityName": "Subscription",
           "schema": {
-            "$ref": "#/backend/entities/Subscription"
+            "$ref": "#/entities/Subscription"
           },
           "description": "Stores user subscription information. Enforces path-based ownership.",
           "params": [
@@ -369,3 +395,5 @@
     "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). It incorporates denormalization where necessary to avoid hierarchical authorization dependencies, and segregates data based on access needs to maintain a homogeneous security posture.\n\n**Authorization Independence:** The structure avoids using `get()` calls in security rules by denormalizing authorization data. For example, if access to `Pooja`, `Donation`, and `Product` documents depends on temple ownership, the `Temple`'s relevant attributes (e.g., a `managers` map containing user IDs and their roles) would be copied into the `Pooja`, `Donation`, and `Product` documents.\n\n**Structural Segregation:** The data is separated into collections based on their security requirements. User-specific data (e.g., Subscriptions) is stored under the `/users/{userId}` path, while temple-owned data is stored under `/temples/{templeId}` path. This segregation simplifies security rules and improves maintainability.\n\n**Access Modeling:** Path-based ownership is used for user-owned data (e.g., `/users/{userId}/subscriptions/{subscriptionId}`). For collaborative data (e.g., access to temple-related collections), the structure can support a membership map (although not explicitly defined in this version since roles are not specified), denormalizing membership data to child collections if more complex access rules are needed beyond simple temple ownership.\n\n**QAPs (Rules are not Filters):** The segregation of data into different collections based on access needs and the use of path-based ownership and membership maps (when needed) ensures that list operations can be secured effectively without filtering on the client-side. The separation of concerns into distinct collections minimizes the need for complex rule logic and makes securing queries straightforward.\n\n**Example Scenario:**\n\n*   A temple registers and creates Pooja offerings. The temple data is stored in `/temples/{templeId}`. The Pooja offerings are stored in `/temples/{templeId}/poojas/{poojaId}`. The pooja documents would include the `templeId`, allowing security rules to easily check if the requesting user has the correct permissions to access or modify the pooja."
   }
 }
+
+    
