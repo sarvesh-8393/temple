@@ -63,20 +63,36 @@ export default function RegisterTemplePage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    toast({
-      title: "Submitting Registration...",
-      description: "Please wait while we process your temple's information.",
-    });
+    form.formState.isSubmitting = true;
+    try {
+        const response = await fetch('/api/temples', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(values),
+        });
 
-    // Simulate backend processing
-    setTimeout(() => {
-        console.log("Form Data:", values);
+        if (!response.ok) {
+            throw new Error('Failed to register temple');
+        }
+
         toast({
             title: "Registration Submitted!",
-            description: "Your temple profile has been submitted for review. We will notify you upon approval.",
+            description: "Your temple profile has been created successfully.",
         });
         form.reset();
-    }, 1500);
+
+    } catch (error) {
+        console.error("Registration error:", error);
+        toast({
+            title: "Registration Failed",
+            description: "There was an error submitting your registration. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        form.formState.isSubmitting = false;
+    }
   }
 
   return (

@@ -40,7 +40,7 @@ export interface User {
     bio: string;
 }
 
-const allPoojas: Pooja[] = [
+export const allPoojas: Pooja[] = [
   {
     id: 'p1',
     name: 'Ganesh Pooja',
@@ -104,7 +104,7 @@ const allPoojas: Pooja[] = [
 ];
 
 
-export const temples: Temple[] = [
+export let temples: Temple[] = [
     {
       id: 't1',
       name: 'Sri Venkateswara Temple',
