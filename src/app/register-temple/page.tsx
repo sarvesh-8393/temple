@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building, PlusCircle, Trash2, IndianRupee } from "lucide-react";
+import { errorEmitter, FirestorePermissionError } from "@/firebase";
 
 const poojaSchema = z.object({
   name: z.string().min(1, "Pooja name is required."),
@@ -79,25 +80,36 @@ export default function RegisterTemplePage() {
       description: "Please wait while we process your temple's information.",
     });
 
-    try {
-      await addDoc(collection(firestore, "temples"), {
-        ...values,
-        createdAt: serverTimestamp(),
+    const templesCollection = collection(firestore, "temples");
+    addDoc(templesCollection, {
+      ...values,
+      createdAt: serverTimestamp(),
+    })
+      .then(() => {
+        toast({
+          title: "Registration Submitted!",
+          description: "Your temple profile has been submitted for review. We will notify you upon approval.",
+        });
+        form.reset();
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+        
+        const permissionError = new FirestorePermissionError({
+          path: templesCollection.path,
+          operation: 'create',
+          requestResourceData: values,
+        });
+        
+        errorEmitter.emit('permission-error', permissionError);
+        
+        // This toast is for user feedback, not for debugging the raw error.
+        toast({
+          variant: "destructive",
+          title: "Submission Failed",
+          description: "There was an error submitting your registration. Please check your permissions and try again.",
+        });
       });
-      
-      toast({
-        title: "Registration Submitted!",
-        description: "Your temple profile has been submitted for review. We will notify you upon approval.",
-      });
-      form.reset();
-    } catch (error) {
-      console.error("Error adding document: ", error);
-      toast({
-        variant: "destructive",
-        title: "Submission Failed",
-        description: "There was an error submitting your registration. Please try again.",
-      });
-    }
   }
 
   return (
@@ -302,3 +314,5 @@ export default function RegisterTemplePage() {
     </main>
   );
 }
+
+    
