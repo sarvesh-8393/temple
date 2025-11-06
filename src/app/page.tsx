@@ -1,6 +1,7 @@
 
 "use client";
 
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -20,12 +21,21 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { temples as featuredTemples } from "@/lib/db";
+import { temples as allTemples } from "@/lib/db";
+import { Input } from "@/components/ui/input";
 
 
-const heroImage = featuredTemples[0]?.image;
+const heroImage = allTemples[0]?.image;
 
 export default function HomePage() {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const featuredTemples = allTemples.filter(
+    (temple) =>
+      temple.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      temple.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex-1 bg-background text-foreground">
       {/* 1. Hero Section */}
@@ -62,9 +72,27 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-12 md:py-20">
         {/* 3. Featured Temples Section */}
         <section className="mb-16 md:mb-24">
-          <h2 className="text-3xl font-headline font-bold text-center mb-8">
-            Featured Temples
-          </h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-headline font-bold">
+              Featured Temples
+            </h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              Discover and explore temples from around the world.
+            </p>
+          </div>
+          
+          <div className="mb-8 max-w-xl mx-auto">
+              <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                      placeholder="Search temples by name or location..."
+                      className="pl-10 text-base"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+              </div>
+          </div>
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredTemples.slice(0, 4).map((temple, index) => (
               <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group">
