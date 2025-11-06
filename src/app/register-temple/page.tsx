@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +7,8 @@ import { z } from "zod";
 import Image from "next/image";
 import { useState } from "react";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { useFirebaseApp } from "@/firebase/provider";
+import { useFirebaseApp, useFirestore } from "@/firebase/provider";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -44,6 +46,7 @@ const formSchema = z.object({
 export default function RegisterTemplePage() {
   const { toast } = useToast();
   const firebaseApp = useFirebaseApp();
+  const firestore = useFirestore();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   
@@ -158,21 +161,32 @@ export default function RegisterTemplePage() {
     // --- End Image Optimization ---
   };
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
       title: "Submitting Registration...",
       description: "Please wait while we process your temple's information.",
     });
 
-    setTimeout(() => {
-      console.log(values);
+    try {
+      await addDoc(collection(firestore, "temples"), {
+        ...values,
+        createdAt: serverTimestamp(),
+      });
+      
       toast({
         title: "Registration Submitted!",
         description: "Your temple profile has been submitted for review. We will notify you upon approval.",
       });
       form.reset();
       setUploadProgress(0);
-    }, 2000);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: "There was an error submitting your registration. Please try again.",
+      });
+    }
   }
 
   return (
@@ -389,3 +403,5 @@ export default function RegisterTemplePage() {
     </main>
   );
 }
+
+    
