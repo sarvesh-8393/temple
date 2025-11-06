@@ -4,10 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import Image from "next/image";
-import { useState } from "react";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { useFirebaseApp, useFirestore } from "@/firebase/provider";
+import { useFirestore } from "@/firebase/provider";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +18,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Building, Upload, PlusCircle, Trash2, IndianRupee } from "lucide-react";
+import { Building, PlusCircle, Trash2, IndianRupee } from "lucide-react";
 
 const poojaSchema = z.object({
   name: z.string().min(1, "Pooja name is required."),
@@ -45,10 +41,7 @@ const formSchema = z.object({
 
 export default function RegisterTemplePage() {
   const { toast } = useToast();
-  const firebaseApp = useFirebaseApp();
   const firestore = useFirestore();
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,97 +63,6 @@ export default function RegisterTemplePage() {
     name: "poojas",
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    const uploadFile = (fileToUpload: File | Blob) => {
-      const storage = getStorage(firebaseApp);
-      const storageRef = ref(storage, `temple-images/${Date.now()}-${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
-
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error("Upload failed:", error);
-          toast({
-            variant: "destructive",
-            title: "Upload Failed",
-            description: "There was an error uploading your image. Please try again.",
-          });
-          setIsUploading(false);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            form.setValue("imageUrl", downloadURL, { shouldValidate: true });
-            toast({
-              title: "Upload Successful",
-              description: "Your temple image has been uploaded.",
-            });
-            setIsUploading(false);
-          });
-        }
-      );
-    }
-    
-    // --- Image Optimization Logic ---
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = document.createElement("img");
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 1024;
-        const MAX_HEIGHT = 1024;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              toast({
-                variant: "destructive",
-                title: "Image Processing Failed",
-                description: "Could not process the image for upload.",
-              });
-              setIsUploading(false);
-              return;
-            }
-            uploadFile(blob);
-          },
-          "image/jpeg",
-          0.9 // 90% quality
-        );
-      };
-      if (event.target?.result) {
-        img.src = event.target.result as string;
-      }
-    };
-    reader.readAsDataURL(file);
-    // --- End Image Optimization ---
-  };
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
       title: "Submitting Registration...",
@@ -178,7 +80,6 @@ export default function RegisterTemplePage() {
         description: "Your temple profile has been submitted for review. We will notify you upon approval.",
       });
       form.reset();
-      setUploadProgress(0);
     } catch (error) {
       console.error("Error adding document: ", error);
       toast({
@@ -310,23 +211,11 @@ export default function RegisterTemplePage() {
                   name="imageUrl"
                   render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Temple Photo</FormLabel>
+                        <FormLabel>Temple Photo URL</FormLabel>
                         <FormControl>
-                            <Input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/*" disabled={isUploading} />
+                          <Input placeholder="https://example.com/temple.jpg" {...field} />
                         </FormControl>
-                        <Button asChild variant="outline" className="w-full" disabled={isUploading}>
-                            <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
-                                <Upload className="w-4 h-4"/>
-                                <span>{isUploading ? 'Uploading...' : 'Choose an Image'}</span>
-                            </label>
-                        </Button>
-                        {isUploading && <Progress value={uploadProgress} className="w-full mt-2" />}
-                        {field.value && !isUploading && (
-                            <div className="mt-4 relative w-full h-64 rounded-lg overflow-hidden border">
-                            <Image src={field.value} alt="Temple preview" fill className="object-cover"/>
-                            </div>
-                        )}
-                        <FormDescription>Upload a high-quality photo of your temple. This is required.</FormDescription>
+                        <FormDescription>Provide a direct link to a high-quality photo of your temple.</FormDescription>
                         <FormMessage />
                     </FormItem>
                   )}
@@ -392,7 +281,7 @@ export default function RegisterTemplePage() {
                   </div>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full" disabled={isUploading || !form.formState.isValid}>
+                <Button type="submit" size="lg" className="w-full" disabled={!form.formState.isValid}>
                   Submit for Review
                 </Button>
               </form>
@@ -403,5 +292,3 @@ export default function RegisterTemplePage() {
     </main>
   );
 }
-
-    
