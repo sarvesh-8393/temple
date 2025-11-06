@@ -31,34 +31,68 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function StorePage() {
   const { toast } = useToast();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
+  const [isCartLoading, setIsCartLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch("/api/products");
+  const fetchProducts = async () => {
+    try {
+      setIsProductsLoading(true);
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      setAllProducts(data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setIsProductsLoading(false);
+    }
+  };
+
+  const fetchCart = async () => {
+    try {
+        setIsCartLoading(true);
+        const res = await fetch('/api/cart');
         const data = await res.json();
-        setAllProducts(data);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        setCart(data);
+    } catch (error) {
+        console.error("Failed to fetch cart:", error);
+    } finally {
+        setIsCartLoading(false);
+    }
+  }
+
+  useEffect(() => {
     fetchProducts();
+    fetchCart();
   }, []);
   
-  const handleAddToCart = (product: Product) => {
-    setCart(prevCart => [...prevCart, product]);
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} has been added to your cart.`,
-    });
+  const handleAddToCart = async (product: Product) => {
+    try {
+        const res = await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: product.id })
+        });
+        if (!res.ok) throw new Error("Failed to add item to cart");
+        
+        const updatedCart = await res.json();
+        setCart(updatedCart);
+
+        toast({
+          title: "Added to Cart",
+          description: `${product.name} has been added to your cart.`,
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            title: "Error",
+            description: "Could not add item to cart. Please try again.",
+            variant: "destructive"
+        })
+    }
   };
   
   const handleCheckout = () => {
@@ -73,22 +107,36 @@ export default function StorePage() {
     setShowCheckout(true);
   };
   
-  const handleConfirmPurchase = () => {
+  const handleConfirmPurchase = async () => {
     setIsProcessing(true);
     toast({
       title: "Processing Order...",
       description: "Finalizing your purchase, please wait.",
     });
 
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowCheckout(false);
-      setCart([]);
-      toast({
-        title: "Purchase Complete!",
-        description: `Your order has been placed. A confirmation email is on its way.`,
-      });
-    }, 2000);
+    try {
+        const res = await fetch('/api/cart/checkout', { method: 'POST' });
+        if (!res.ok) throw new Error("Checkout failed");
+
+        setTimeout(() => {
+          setIsProcessing(false);
+          setShowCheckout(false);
+          setCart([]);
+          toast({
+            title: "Purchase Complete!",
+            description: `Your order has been placed. A confirmation email is on its way.`,
+          });
+        }, 2000); // Simulate processing time
+
+    } catch (error) {
+        console.error(error);
+        setIsProcessing(false);
+        toast({
+            title: "Error",
+            description: "There was a problem with your purchase. Please try again.",
+            variant: "destructive"
+        });
+    }
   };
   
   const cartTotal = cart.reduce((total, item) => total + item.price, 0);
@@ -110,7 +158,7 @@ export default function StorePage() {
         </div>
         <Button onClick={handleCheckout}>
             <ShoppingBag className="mr-2 h-4 w-4" />
-            Cart ({cart.length})
+            Cart ({isCartLoading ? '...' : cart.length})
         </Button>
       </div>
 
@@ -127,7 +175,7 @@ export default function StorePage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {isLoading ? (
+        {isProductsLoading ? (
             Array.from({ length: 4 }).map((_, index) => (
                 <Card key={index} className="flex flex-col overflow-hidden">
                     <Skeleton className="h-56 w-full" />
@@ -190,12 +238,18 @@ export default function StorePage() {
               </DialogDescription>
             </DialogHeader>
             <div className="max-h-64 overflow-y-auto pr-4 space-y-4 my-4">
-              {cart.map((item, index) => (
-                <div key={`${item.id}-${index}`} className="flex justify-between items-center">
-                  <span>{item.name}</span>
-                  <span className="font-medium">${item.price.toFixed(2)}</span>
-                </div>
-              ))}
+              {isCartLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : cart.length > 0 ? (
+                cart.map((item, index) => (
+                  <div key={`${item.id}-${index}`} className="flex justify-between items-center">
+                    <span>{item.name}</span>
+                    <span className="font-medium">${item.price.toFixed(2)}</span>
+                  </div>
+                ))
+              ) : (
+                <p>Your cart is empty.</p>
+              )}
             </div>
              <hr className="my-4" />
               <div className="flex justify-between items-center text-lg font-bold">
@@ -206,7 +260,7 @@ export default function StorePage() {
               <Button variant="outline" onClick={() => setShowCheckout(false)} disabled={isProcessing}>
                 Cancel
               </Button>
-              <Button onClick={handleConfirmPurchase} disabled={isProcessing}>
+              <Button onClick={handleConfirmPurchase} disabled={isProcessing || cart.length === 0}>
                 {isProcessing ? "Processing..." : `Pay $${cartTotal.toFixed(2)}`}
               </Button>
             </DialogFooter>

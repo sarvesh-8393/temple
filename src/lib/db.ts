@@ -195,3 +195,6 @@ export const user: User = {
     plan: "Premium",
     bio: "A passionate devotee dedicated to spiritual growth and supporting temple communities."
 }
+
+// Mock database for cart items
+export let cart: Product[] = [];
