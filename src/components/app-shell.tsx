@@ -28,7 +28,7 @@ import {
 import { Logo } from "@/components/logo";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { user } from "@/lib/db";
+import { useAuth } from "@/contexts/auth-context";
 
 const navItems = [
   { href: "/", label: "Dashboard" },
@@ -41,17 +41,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
 
-  // Since we are using mock data, we can consider the user always logged in.
-  const isLoggedIn = !!user;
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const { user, logout: authLogout } = useAuth();
+  const isLoggedIn = isClient && !!user;
 
   const handleLogout = async () => {
+    authLogout();
     toast({
         title: "Logged Out",
         description: "You have been successfully logged out.",
     });
-    // In a real app, you'd redirect or update state.
-    // For mock, we'll just show the toast.
   };
   
   // Hide shell on login/signup pages

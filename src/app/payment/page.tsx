@@ -3,11 +3,18 @@
 
 import React, { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { initializeRazorpayPayment } from '@/lib/razorpay';
+import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { user } from '@/lib/db';
 import { CreditCard, Zap } from 'lucide-react';
+
+const initialUser = {
+    id: "test_user_id", // This should come from your auth context
+    displayName: "Test User",
+    email: "test@example.com"
+};
 
 declare global {
     interface Window {
@@ -19,72 +26,60 @@ function PaymentPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const amount = searchParams.get('amount') || '0';
   const templeName = searchParams.get('templeName') || 'the temple';
   const type = searchParams.get('type') || 'Payment';
   
-  const handlePayment = () => {
-    const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: Number(amount) * 100, // Amount is in currency subunits.
-        currency: "INR",
-        name: "TempleConnect",
-        description: `${type} for ${templeName}`,
-        image: "https://images.unsplash.com/photo-1621787084849-ed98731b3071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmRpYW4lMjB0ZW1wbGV8ZW58MHx8fHwxNzYyMzUyMzMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-        handler: function (response: any){
-            toast({
-                title: "Payment Successful!",
-                description: `Payment ID: ${response.razorpay_payment_id}`,
-            });
-            router.push('/');
-        },
-        prefill: {
-            name: user.displayName,
-            email: user.email,
-            contact: "9999999999" // This should be dynamic in a real app
-        },
-        notes: {
-            address: "TempleConnect Corporate Office"
-        },
-        theme: {
-            "color": "#F59E0B" // Using primary color from theme
-        }
-    };
-    
-    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID === 'rzp_test_XXXXXXXXXXXXXX') {
+  const handlePayment = async () => {
+    try {
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "Please login to make a payment",
+          variant: "destructive"
+        });
+        router.push('/login');
+        return;
+      }
+      
+      if (!amount || !templeName || !type || !user) {
+        toast({
+          title: "Error",
+          description: "Missing required payment details",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const paymentDetails: any = {
+        amount: Number(amount),
+        templeName,
+        type: type as 'Pooja' | 'Donation',
+        userId: user._id,
+        name: user.displayName,
+        email: user.email,
+      };
+      const templeId = searchParams.get('templeId');
+      if (templeId && templeId.length === 24) paymentDetails.templeId = templeId;
+      const poojaId = searchParams.get('poojaId');
+      if (poojaId && poojaId.length === 24) paymentDetails.poojaId = poojaId;
+
+      await initializeRazorpayPayment(paymentDetails);
+
       toast({
-        title: "Configuration Error",
-        description: "Razorpay Key ID is not configured. Please set it in your environment variables.",
+        title: "Payment Successful!",
+        description: "Your booking has been confirmed.",
+      });
+      
+      router.push('/profile'); // Redirect to profile to see booking history
+    } catch (error: any) {
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Something went wrong",
         variant: "destructive"
       });
-      console.error("Razorpay Key ID is not set. Please add NEXT_PUBLIC_RAZORPAY_KEY_ID to your env file.");
-      // In a real app, you might want to show a more user-friendly message or disable the button.
-      // For this simulation, we'll show a success toast to allow the user flow to continue.
-      toast({
-        title: "Payment Successful! (Simulation)",
-        description: `This is a simulated success as Razorpay is not configured.`,
-      });
-      router.push('/');
-      return;
-    }
-    
-    if (window.Razorpay) {
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function (response: any){
-                toast({
-                    title: "Payment Failed",
-                    description: `${response.error.description} (Code: ${response.error.code})`,
-                    variant: "destructive"
-                });
-        });
-        rzp.open();
-    } else {
-        toast({
-            title: "Error",
-            description: "Razorpay script not loaded. Please check your internet connection and try again.",
-            variant: "destructive"
-        })
     }
   };
 
@@ -97,16 +92,16 @@ function PaymentPageContent() {
             Confirm Your Payment
           </CardTitle>
           <CardDescription>
-            You are about to make a {type.toLowerCase()} of ${amount} to {templeName}.
+            You are about to make a {type.toLowerCase()} of ₹{amount} to {templeName}.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             <div className="flex justify-between items-center text-lg p-4 border rounded-lg">
-                <span>Total Amount (USD estimate):</span>
-                <span className="font-bold text-2xl text-primary">${amount}</span>
+                <span>Total Amount (₹):</span>
+                <span className="font-bold text-2xl text-primary">₹{amount}</span>
             </div>
             <p className='text-sm text-muted-foreground'>
-                You will be charged in INR. The final amount will be converted based on the current exchange rate.
+                The amount shown is in Indian Rupees (₹).
             </p>
         </CardContent>
         <CardFooter>

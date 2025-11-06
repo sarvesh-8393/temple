@@ -17,8 +17,20 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { HeartHandshake, Search } from "lucide-react";
 import { DiyaIcon } from "@/components/icons";
-import { type Temple } from "@/lib/db";
+// Removed import from '@/lib/db' as requested
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface Image {
+  imageUrl: string;
+  imageHint?: string;
+}
+
+interface Temple {
+  id: string;
+  name: string;
+  location: string;
+  image?: Image;
+}
 
 const presetAmounts = [51, 101, 251, 501, 1001];
 
@@ -163,7 +175,7 @@ export default function DonationsPage() {
             <CardTitle>Enter Amount</CardTitle>
             <CardDescription>
               Choose a preset amount or enter a custom one. All donations are in
-              USD.
+              Rupees (₹).
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -175,7 +187,7 @@ export default function DonationsPage() {
                   onClick={() => setAmount(String(preset))}
                   className="text-lg font-semibold"
                 >
-                  ${preset}
+                  ₹{preset}
                 </Button>
               ))}
               <Input
@@ -192,7 +204,7 @@ export default function DonationsPage() {
               onClick={handleDonate}
               disabled={!amount || Number(amount) <= 0 || !selectedTempleId || isLoading}
             >
-              <HeartHandshake className="mr-2 h-5 w-5" /> Proceed to Pay ${amount}
+              <HeartHandshake className="mr-2 h-5 w-5" /> Proceed to Pay ₹{amount}
             </Button>
             <p className="text-center text-xs text-muted-foreground mt-4">
               You will be redirected to our secure payment gateway.

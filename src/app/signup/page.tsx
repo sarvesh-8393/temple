@@ -9,10 +9,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function SignUpPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -48,6 +50,10 @@ export default function SignUpPage() {
         if (!response.ok) {
             throw new Error(data.message || 'Sign up failed');
         }
+
+        // Store the token and user data
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
 
         toast({
             title: 'Account Created',

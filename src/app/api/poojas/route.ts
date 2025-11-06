@@ -1,16 +1,15 @@
 
 import { NextResponse } from "next/server";
-import { temples } from "@/lib/db";
+import { connectToDatabase, Temple } from '@/lib/mongodb';
 
 export async function GET() {
   try {
-    // In a real backend, you would fetch and structure this from a database
-    return NextResponse.json(temples); // Returning all temples which contain poojas
+    await connectToDatabase();
+    // Fetch temples from the database and return them; frontend will map poojas
+    const temples = await Temple.find({}).lean();
+    return NextResponse.json(temples);
   } catch (error) {
     console.error("Failed to fetch poojas:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch poojas" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to fetch poojas" }, { status: 500 });
   }
 }

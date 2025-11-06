@@ -17,7 +17,13 @@ import {
 import { CheckCircle, Star } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useToast } from '@/hooks/use-toast';
-import { user } from '@/lib/db';
+
+const user = {
+  displayName: 'Test User',
+  email: 'test@example.com',
+  bio: 'A devoted temple visitor.',
+  photoURL: undefined,
+};
 
 const premiumBg = PlaceHolderImages.find((img) => img.id === 'premium-plan');
 

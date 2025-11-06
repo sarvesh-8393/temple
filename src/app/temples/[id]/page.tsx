@@ -4,7 +4,34 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { type Temple, type Pooja } from '@/lib/db';
+
+interface Image {
+  imageUrl: string;
+  imageHint?: string;
+}
+
+interface Pooja {
+  id?: string;
+  _id?: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: Image;
+  date?: string;
+  time?: string;
+  tags: string[];
+}
+
+interface Temple {
+  id?: string;
+  _id?: string;
+  name: string;
+  description: string;
+  location: string;
+  image: Image;
+  poojas: Pooja[];
+}
+
 import {
   Card,
   CardContent,
@@ -25,10 +52,14 @@ export default function TempleDetailPage() {
   const [temple, setTemple] = useState<Temple | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const templeId = params.id as string;
+  const templeId = params?.id as string;
 
   useEffect(() => {
-    if (!templeId) return;
+    if (!templeId) {
+      console.error("No temple ID provided");
+      setIsLoading(false);
+      return;
+    }
     const fetchTemple = async () => {
       try {
         setIsLoading(true);
@@ -77,12 +108,12 @@ export default function TempleDetailPage() {
     );
   }
 
-  if (!temple) {
+  if (!temple || !templeId) {
     return (
       <div className="flex-1 p-8 text-center">
         <h1 className="text-2xl font-bold">Temple not found</h1>
         <p className="text-muted-foreground">
-          The temple you are looking for does not exist.
+          {!templeId ? "Invalid temple ID" : "The temple you are looking for does not exist."}
         </p>
         <Button onClick={() => router.push('/')} className="mt-4">
           Back to Home
@@ -142,8 +173,8 @@ export default function TempleDetailPage() {
             <h2 className="text-3xl font-headline font-bold">Poojas Offered</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {temple.poojas.map((pooja) => (
-              <Card key={pooja.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+            {temple.poojas.map((pooja, idx) => (
+              <Card key={pooja.id ?? pooja._id ?? `${temple.name}-pooja-${idx}`} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                 {pooja.image && (
                   <div className="relative h-48 w-full">
                     <Image
@@ -177,7 +208,7 @@ export default function TempleDetailPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-                  <p className="text-lg font-bold text-primary">${pooja.price}</p>
+                  <p className="text-lg font-bold text-primary">₹{pooja.price}</p>
                   <Button onClick={() => handleBookNow(pooja, temple.name)}>Book Now</Button>
                 </CardFooter>
               </Card>

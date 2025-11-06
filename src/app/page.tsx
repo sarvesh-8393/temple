@@ -21,10 +21,19 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { type Temple } from "@/lib/db";
+// Removed import from '@/lib/db' as requested
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface Temple {
+  id: string;
+  name: string;
+  location: string;
+  image?: {
+    imageUrl: string;
+    imageHint?: string;
+  };
+}
 
 const heroImage = {
     imageUrl: "https://images.unsplash.com/photo-1621787084849-ed98731b3071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmRpYW4lMjB0ZW1wbGV8ZW58MHx8fHwxNzYyMzUyMzMwfDA&ixlib=rb-4.1.0&q=80&w=1080",

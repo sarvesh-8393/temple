@@ -1,10 +1,11 @@
 
 import { NextResponse } from "next/server";
-import { products } from "@/lib/db";
+import { connectToDatabase, Product } from '@/lib/mongodb';
 
 export async function GET() {
   try {
-    // In a real backend, you would fetch this from a database
+    await connectToDatabase();
+    const products = await Product.find({});
     return NextResponse.json(products);
   } catch (error) {
     console.error("Failed to fetch products:", error);

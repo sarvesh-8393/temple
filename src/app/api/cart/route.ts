@@ -1,11 +1,14 @@
 
 import { NextResponse } from "next/server";
-import { cart, products, type Product } from "@/lib/db";
+import { connectToDatabase, Cart } from "@/lib/mongodb";
 
 export async function GET() {
   try {
-    // In a real app, you'd fetch the cart for the logged-in user
-    return NextResponse.json(cart);
+    await connectToDatabase();
+    // Note: In a real app, you'd get the userId from the session
+    // For now, we'll fetch all carts
+    const carts = await Cart.find({}).populate('items');
+    return NextResponse.json(carts);
   } catch (error) {
     console.error("Failed to fetch cart:", error);
     return NextResponse.json(
@@ -18,22 +21,25 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { productId } = body;
+        const { productId, userId } = body;
 
-        if (!productId) {
-            return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
+        if (!productId || !userId) {
+            return NextResponse.json({ message: "Product ID and User ID are required" }, { status: 400 });
         }
 
-        const productToAdd = products.find(p => p.id === productId);
-
-        if (!productToAdd) {
-            return NextResponse.json({ message: "Product not found" }, { status: 404 });
-        }
-
-        // In a real DB, you would add this to the user's cart collection/table
-        cart.push(productToAdd);
+        await connectToDatabase();
         
-        return NextResponse.json(cart, { status: 200 });
+        let cart = await Cart.findOne({ userId });
+        
+        if (!cart) {
+            cart = new Cart({ userId, items: [] });
+        }
+        
+        cart.items.push(productId);
+        await cart.save();
+        
+        const populatedCart = await Cart.findById(cart._id).populate('items');
+        return NextResponse.json(populatedCart, { status: 200 });
 
     } catch (error) {
         console.error("Failed to add to cart:", error);

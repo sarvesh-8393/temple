@@ -1,30 +1,64 @@
 
 import { NextResponse } from "next/server";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { connectToDatabase, User } from '@/lib/mongodb';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Make sure to set this in .env
 
 export async function POST(request: Request) {
     try {
+        await connectToDatabase();
+
         const { firstName, lastName, email, password } = await request.json();
 
-        // This is a mock signup. In a real app, you would:
-        // 1. Validate the input data.
-        // 2. Check if the user already exists in your database.
-        // 3. Hash the password.
-        // 4. Create a new user record in the database.
-        
+        // Validate input
         if (!firstName || !lastName || !email || !password) {
             return NextResponse.json({ message: "All fields are required" }, { status: 400 });
         }
-        
-        // Simulate a successful user creation.
-        // In a real DB, you'd be inserting a new record.
-        console.log(`Simulating signup for: ${email}`);
 
-        const newUser = {
-            displayName: `${firstName} ${lastName}`,
-            email: email,
+        // Check if user already exists
+        const existingUser = await User.findOne({ email: email.toLowerCase() });
+        if (existingUser) {
+            return NextResponse.json({ message: "User already exists" }, { status: 409 });
         }
 
-        return NextResponse.json({ message: "Signup successful", user: newUser }, { status: 201 });
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new user
+        const newUser = new User({
+            displayName: `${firstName} ${lastName}`,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            plan: 'Free',
+            bio: ''
+        });
+
+        await newUser.save();
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: newUser._id },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        // Don't send password back in response
+        const userWithoutPassword = {
+            _id: newUser._id,
+            displayName: newUser.displayName,
+            email: newUser.email,
+            plan: newUser.plan,
+            bio: newUser.bio
+        };
+
+        return NextResponse.json({
+            message: "Signup successful",
+            user: userWithoutPassword,
+            token
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Signup error:", error);

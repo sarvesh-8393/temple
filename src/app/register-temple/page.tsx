@@ -34,7 +34,12 @@ const formSchema = z.object({
   zipCode: z.string().regex(/^\d{5,6}$/, "Must be a valid zip code."),
   description: z.string().min(20, "Description must be at least 20 characters.").max(500),
   contactEmail: z.string().email("Invalid email address."),
-  imageUrl: z.string().url("A valid image URL is required."),
+  imageUrl: z.string()
+    .min(1, "Temple photo URL is required")
+    .refine((url) => {
+      // Allow both regular URLs and data URLs
+      return url.startsWith('http') || url.startsWith('https') || url.startsWith('data:image/');
+    }, "Please provide a valid image URL"),
   poojas: z.array(poojaSchema).optional(),
 });
 
@@ -63,7 +68,6 @@ export default function RegisterTemplePage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    form.formState.isSubmitting = true;
     try {
         const response = await fetch('/api/temples', {
             method: 'POST',
@@ -74,8 +78,12 @@ export default function RegisterTemplePage() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to register temple');
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to register temple');
         }
+
+        const result = await response.json();
+        console.log('Temple registered successfully:', result);
 
         toast({
             title: "Registration Submitted!",
@@ -83,15 +91,13 @@ export default function RegisterTemplePage() {
         });
         form.reset();
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Registration error:", error);
         toast({
             title: "Registration Failed",
-            description: "There was an error submitting your registration. Please try again.",
+            description: error.message || "There was an error submitting your registration. Please try again.",
             variant: "destructive",
         });
-    } finally {
-        form.formState.isSubmitting = false;
     }
   }
 
@@ -218,9 +224,15 @@ export default function RegisterTemplePage() {
                     <FormItem>
                         <FormLabel>Temple Photo URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://example.com/temple.jpg" {...field} />
+                          <Input 
+                            placeholder="https://example.com/temple.jpg" 
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormDescription>Provide a direct link to a high-quality photo of your temple.</FormDescription>
+                        <FormDescription>
+                          Provide a direct web link (URL) to your temple photo. The URL should start with 'http://' or 'https://' 
+                          and point directly to an image file. You can upload your image to a service like Imgur or similar and use that link.
+                        </FormDescription>
                         <FormMessage />
                     </FormItem>
                   )}

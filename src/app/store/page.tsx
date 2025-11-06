@@ -23,9 +23,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Star, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { type Product } from "@/lib/db";
+// Removed import from '@/lib/db' as requested
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Product } from "@/types";
 
 
 export default function StorePage() {

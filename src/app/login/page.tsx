@@ -8,12 +8,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  
+  const redirectTo = searchParams.get('from') || '/';
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,11 +42,15 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
+      // Store the token and user data
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
       });
-      router.push('/');
+      router.push(redirectTo);
     } catch (error: any) {
       toast({
         title: 'Login Failed',

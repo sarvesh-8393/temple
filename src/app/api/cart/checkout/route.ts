@@ -1,17 +1,26 @@
 
 import { NextResponse } from "next/server";
-import { cart } from "@/lib/db";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Cart } from "@/lib/mongodb";
 
-export async function POST() {
+export async function POST(request: Request) {
     try {
-        // In a real application, you would:
-        // 1. Verify the payment status with a payment provider.
-        // 2. Create an order record in your database.
-        // 3. Clear the user's cart.
+        const body = await request.json();
+        const { userId } = body;
 
-        // For our mock setup, we just clear the cart array.
-        cart.length = 0;
-        
+        if (!userId) {
+            return NextResponse.json({ message: "userId is required" }, { status: 400 });
+        }
+
+        await connectToDatabase();
+
+        // Clear the cart for the given user
+        const cart = await Cart.findOne({ userId });
+        if (cart) {
+            cart.items = [];
+            await cart.save();
+        }
+
         return NextResponse.json({ message: "Checkout successful, cart cleared" }, { status: 200 });
 
     } catch (error) {

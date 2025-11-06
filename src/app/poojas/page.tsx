@@ -15,21 +15,48 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Search } from "lucide-react";
 import { OmIcon } from "@/components/icons";
-import { type Pooja, type Temple } from "@/lib/db";
+// Removed import from '@/lib/db' as requested
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+interface Image {
+  imageUrl: string;
+  imageHint?: string;
+}
+
+interface Pooja {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: Image;
+  date?: string;
+  time?: string;
+  tags: string[];
+}
+
+interface Temple {
+  id: string;
+  name: string;
+  location: string;
+  image: Image;
+  poojas: Pooja[];
+}
 
 export default function PoojasPage() {
   const router = useRouter();
   const [temples, setTemples] = useState<Temple[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPoojas = async () => {
         try {
             setIsLoading(true);
             const res = await fetch('/api/poojas');
+            if (!res.ok) {
+                throw new Error('Failed to fetch poojas');
+            }
             const data = await res.json();
             setTemples(data);
         } catch (error) {
@@ -115,8 +142,8 @@ export default function PoojasPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {temple.poojas.map((pooja) => (
-                                <Card key={pooja.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            {temple.poojas.map((pooja, idx) => (
+                                <Card key={pooja.id || pooja._id || idx} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                                 {pooja.image && (
                                     <div className="relative h-48 w-full">
                                     <Image
@@ -131,8 +158,8 @@ export default function PoojasPage() {
                                 <CardHeader>
                                     <CardTitle className="font-headline text-xl">{pooja.name}</CardTitle>
                                     <div className="flex flex-wrap gap-2 pt-2">
-                                    {pooja.tags.map((tag) => (
-                                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                                    {pooja.tags.map((tag, tagIdx) => (
+                                        <Badge key={tag + '-' + tagIdx} variant="secondary">{tag}</Badge>
                                     ))}
                                     </div>
                                 </CardHeader>
@@ -150,7 +177,7 @@ export default function PoojasPage() {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-                                    <p className="text-lg font-bold text-primary">${pooja.price}</p>
+                                    <p className="text-lg font-bold text-primary">₹{pooja.price}</p>
                                     <Button onClick={() => handleBookNow(pooja, temple.name)}>Book Now</Button>
                                 </CardFooter>
                                 </Card>

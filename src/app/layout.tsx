@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 import Script from "next/script";
+import { AuthProvider } from "@/contexts/auth-context";
 
 export const metadata: Metadata = {
   title: "TempleConnect",
@@ -30,9 +31,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AppShell>{children}</AppShell>
-        <Toaster />
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+          <Toaster />
+          <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+        </AuthProvider>
       </body>
     </html>
   );
