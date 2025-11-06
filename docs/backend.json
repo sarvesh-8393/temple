@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Temple": {
@@ -49,11 +50,14 @@
               "name": {
                 "type": "string"
               },
+              "description": {
+                "type": "string"
+              },
               "price": {
                 "type": "number"
               }
             },
-            "required": ["name", "price"]
+            "required": ["name", "price", "description"]
           }
         },
         "createdAt": {
@@ -395,5 +399,3 @@
     "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). It incorporates denormalization where necessary to avoid hierarchical authorization dependencies, and segregates data based on access needs to maintain a homogeneous security posture.\n\n**Authorization Independence:** The structure avoids using `get()` calls in security rules by denormalizing authorization data. For example, if access to `Pooja`, `Donation`, and `Product` documents depends on temple ownership, the `Temple`'s relevant attributes (e.g., a `managers` map containing user IDs and their roles) would be copied into the `Pooja`, `Donation`, and `Product` documents.\n\n**Structural Segregation:** The data is separated into collections based on their security requirements. User-specific data (e.g., Subscriptions) is stored under the `/users/{userId}` path, while temple-owned data is stored under `/temples/{templeId}` path. This segregation simplifies security rules and improves maintainability.\n\n**Access Modeling:** Path-based ownership is used for user-owned data (e.g., `/users/{userId}/subscriptions/{subscriptionId}`). For collaborative data (e.g., access to temple-related collections), the structure can support a membership map (although not explicitly defined in this version since roles are not specified), denormalizing membership data to child collections if more complex access rules are needed beyond simple temple ownership.\n\n**QAPs (Rules are not Filters):** The segregation of data into different collections based on access needs and the use of path-based ownership and membership maps (when needed) ensures that list operations can be secured effectively without filtering on the client-side. The separation of concerns into distinct collections minimizes the need for complex rule logic and makes securing queries straightforward.\n\n**Example Scenario:**\n\n*   A temple registers and creates Pooja offerings. The temple data is stored in `/temples/{templeId}`. The Pooja offerings are stored in `/temples/{templeId}/poojas/{poojaId}`. The pooja documents would include the `templeId`, allowing security rules to easily check if the requesting user has the correct permissions to access or modify the pooja."
   }
 }
-
-    
