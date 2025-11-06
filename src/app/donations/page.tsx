@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { HeartHandshake } from "lucide-react";
+import { HeartHandshake, Search } from "lucide-react";
 import { DiyaIcon } from "@/components/icons";
 import { temples } from "@/lib/db";
 
@@ -25,6 +25,7 @@ export default function DonationsPage() {
   const router = useRouter();
   const [selectedTemple, setSelectedTemple] = useState("t1");
   const [amount, setAmount] = useState("101");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleDonate = () => {
     const temple = temples.find(t => t.id === selectedTemple);
@@ -34,6 +35,11 @@ export default function DonationsPage() {
       )}&type=Donation`
     );
   };
+  
+  const filteredTemples = temples.filter(temple => 
+    temple.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
 
   return (
     <main className="flex-1 p-4 md:p-8">
@@ -58,12 +64,23 @@ export default function DonationsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-6 max-w-sm">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search for a temple..."
+                        className="pl-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
             <RadioGroup
               value={selectedTemple}
               onValueChange={setSelectedTemple}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
-              {temples.slice(0, 2).map((temple) => (
+              {filteredTemples.map((temple) => (
                 <Label
                   key={temple.id}
                   htmlFor={temple.id}

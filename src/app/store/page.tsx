@@ -21,9 +21,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag, Star, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { type Product, products } from "@/lib/db";
+import { type Product, products as allProducts } from "@/lib/db";
+import { Input } from "@/components/ui/input";
 
 
 export default function StorePage() {
@@ -31,6 +32,7 @@ export default function StorePage() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const handleAddToCart = (product: Product) => {
     setCart(prevCart => [...prevCart, product]);
@@ -72,6 +74,11 @@ export default function StorePage() {
   
   const cartTotal = cart.reduce((total, item) => total + item.price, 0);
 
+  const filteredProducts = allProducts.filter(product =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <main className="flex-1 p-4 md:p-8">
       <div className="flex items-center justify-between gap-4 mb-8">
@@ -88,37 +95,55 @@ export default function StorePage() {
         </Button>
       </div>
 
+       <div className="mb-8 max-w-xl">
+          <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input 
+                  placeholder="Search for products..."
+                  className="pl-10 text-base"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+              />
+          </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <Card key={product.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-            {product.image && (
-              <div className="relative h-56 w-full bg-muted">
-                <Image
-                  src={product.image.imageUrl}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={product.image.imageHint}
-                />
-              </div>
-            )}
-            <CardHeader>
-              <CardTitle className="font-headline text-lg">{product.name}</CardTitle>
-              <div className="flex items-center gap-1 text-sm text-amber-500">
-                <Star className="w-4 h-4 fill-current" />
-                <span>{product.rating}</span>
-                <span className="text-muted-foreground">({product.reviews} reviews)</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-muted-foreground text-sm">{product.description}</p>
-            </CardContent>
-            <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-              <p className="text-lg font-bold text-primary">${product.price}</p>
-              <Button onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-            </CardFooter>
-          </Card>
-        ))}
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => (
+            <Card key={product.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              {product.image && (
+                <div className="relative h-56 w-full bg-muted">
+                  <Image
+                    src={product.image.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    data-ai-hint={product.image.imageHint}
+                  />
+                </div>
+              )}
+              <CardHeader>
+                <CardTitle className="font-headline text-lg">{product.name}</CardTitle>
+                <div className="flex items-center gap-1 text-sm text-amber-500">
+                  <Star className="w-4 h-4 fill-current" />
+                  <span>{product.rating}</span>
+                  <span className="text-muted-foreground">({product.reviews} reviews)</span>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground text-sm">{product.description}</p>
+              </CardContent>
+              <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
+                <p className="text-lg font-bold text-primary">${product.price}</p>
+                <Button onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+            <div className="col-span-full text-center py-10">
+                <p className="text-lg text-muted-foreground">No products found for your search.</p>
+            </div>
+        )}
       </div>
 
       <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
