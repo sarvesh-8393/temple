@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { temples, type Pooja } from '@/lib/db';
@@ -16,28 +16,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { OmIcon } from '@/components/icons';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-
-interface BookingPooja extends Pooja {
-  templeName?: string;
-}
 
 export default function TempleDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { toast } = useToast();
-
-  const [selectedPooja, setSelectedPooja] = useState<BookingPooja | null>(null);
-  const [isBooking, setIsBooking] = useState(false);
 
   const templeId = params.id as string;
   const temple = temples.find((t) => t.id === templeId);
@@ -57,27 +40,11 @@ export default function TempleDetailPage() {
   }
 
   const handleBookNow = (pooja: Pooja, templeName: string) => {
-    setSelectedPooja({ ...pooja, templeName });
-  };
-
-  const handleConfirmBooking = () => {
-    if (!selectedPooja) return;
-
-    setIsBooking(true);
-    toast({
-      title: 'Processing Booking...',
-      description: 'Your pooja booking is being confirmed.',
-    });
-
-    // Simulate booking process
-    setTimeout(() => {
-      setIsBooking(false);
-      setSelectedPooja(null);
-      toast({
-        title: 'Booking Confirmed!',
-        description: `Your booking for ${selectedPooja.name} is complete. A confirmation email has been sent.`,
-      });
-    }, 2000);
+    router.push(
+      `/payment?amount=${pooja.price}&templeName=${encodeURIComponent(
+        templeName
+      )}&type=Pooja`
+    );
   };
 
   return (
@@ -166,50 +133,6 @@ export default function TempleDetailPage() {
           </div>
         </section>
       </div>
-
-       {selectedPooja && (
-        <Dialog open={!!selectedPooja} onOpenChange={() => setSelectedPooja(null)}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="font-headline text-2xl">Confirm Booking</DialogTitle>
-              <DialogDescription>
-                You are booking the <strong>{selectedPooja.name}</strong> pooja at {selectedPooja.templeName}.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Pooja</span>
-                <span>{selectedPooja.name}</span>
-              </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-muted-foreground">Temple</span>
-                <span>{selectedPooja.templeName}</span>
-              </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-muted-foreground">Date</span>
-                <span>{selectedPooja.date}</span>
-              </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-muted-foreground">Time</span>
-                <span>{selectedPooja.time}</span>
-              </div>
-              <hr className="my-4" />
-              <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total</span>
-                <span className="text-primary">${selectedPooja.price}</span>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setSelectedPooja(null)} disabled={isBooking}>
-                Cancel
-              </Button>
-              <Button onClick={handleConfirmBooking} disabled={isBooking}>
-                {isBooking ? "Processing..." : "Pay & Confirm"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
     </main>
   );
 }
