@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -15,12 +15,31 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Search } from "lucide-react";
 import { OmIcon } from "@/components/icons";
-import { type Pooja, temples } from "@/lib/db";
+import { type Pooja, type Temple } from "@/lib/db";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PoojasPage() {
   const router = useRouter();
+  const [temples, setTemples] = useState<Temple[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const fetchPoojas = async () => {
+        try {
+            setIsLoading(true);
+            const res = await fetch('/api/poojas');
+            const data = await res.json();
+            setTemples(data);
+        } catch (error) {
+            console.error("Failed to fetch poojas:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    fetchPoojas();
+  }, []);
 
   const handleBookNow = (pooja: Pooja, templeName: string) => {
     router.push(
@@ -34,7 +53,7 @@ export default function PoojasPage() {
       const filteredPoojas = temple.poojas.filter(pooja => 
           pooja.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           pooja.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          pooja.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          (pooja.tags && pooja.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
       );
       return {...temple, poojas: filteredPoojas};
   }).filter(temple => temple.poojas.length > 0);
@@ -63,7 +82,29 @@ export default function PoojasPage() {
             </div>
 
             <div className="space-y-12">
-                {filteredTemples.length > 0 ? (
+                {isLoading ? (
+                    Array.from({length: 2}).map((_, i) => (
+                        <section key={i}>
+                            <div className="flex items-center gap-4 mb-6">
+                                <Skeleton className="w-16 h-16 rounded-full" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-7 w-48" />
+                                    <Skeleton className="h-5 w-32" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {Array.from({length: 3}).map((_, j) => (
+                                    <Card key={j}>
+                                        <Skeleton className="h-48 w-full" />
+                                        <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+                                        <CardContent><Skeleton className="h-12 w-full" /></CardContent>
+                                        <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        </section>
+                    ))
+                ) : filteredTemples.length > 0 ? (
                     filteredTemples.map((temple) => (
                         <section key={temple.id}>
                             <div className="flex items-center gap-4 mb-6">

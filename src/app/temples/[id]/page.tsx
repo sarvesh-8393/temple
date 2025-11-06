@@ -1,10 +1,10 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { temples, type Pooja } from '@/lib/db';
+import { type Temple, type Pooja } from '@/lib/db';
 import {
   Card,
   CardContent,
@@ -17,13 +17,65 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { OmIcon } from '@/components/icons';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TempleDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const [temple, setTemple] = useState<Temple | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const templeId = params.id as string;
-  const temple = temples.find((t) => t.id === templeId);
+
+  useEffect(() => {
+    if (!templeId) return;
+    const fetchTemple = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`/api/temples/${templeId}`);
+        if (!res.ok) {
+          throw new Error('Temple not found');
+        }
+        const data = await res.json();
+        setTemple(data);
+      } catch (error) {
+        console.error("Failed to fetch temple:", error);
+        setTemple(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTemple();
+  }, [templeId]);
+
+
+  if (isLoading) {
+    return (
+        <main className="flex-1">
+            <Skeleton className="h-80 w-full" />
+            <div className="container mx-auto max-w-5xl px-4 py-8 md:py-12">
+                <Card className="shadow-lg mb-12">
+                    <CardHeader><Skeleton className="h-8 w-1/3" /></CardHeader>
+                    <CardContent><Skeleton className="h-20 w-full" /></CardContent>
+                </Card>
+                <div className="flex items-center gap-4 mb-6">
+                    <OmIcon className="w-8 h-8 text-primary" />
+                    <Skeleton className="h-9 w-1/2" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({length: 3}).map((_, i) => (
+                        <Card key={i}>
+                            <Skeleton className="h-48 w-full" />
+                            <CardHeader><Skeleton className="h-7 w-3/4" /></CardHeader>
+                            <CardContent><Skeleton className="h-16 w-full" /></CardContent>
+                            <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </main>
+    );
+  }
 
   if (!temple) {
     return (

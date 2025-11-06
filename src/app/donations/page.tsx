@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -17,29 +17,52 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { HeartHandshake, Search } from "lucide-react";
 import { DiyaIcon } from "@/components/icons";
-import { temples } from "@/lib/db";
+import { type Temple } from "@/lib/db";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const presetAmounts = [51, 101, 251, 501, 1001];
 
 export default function DonationsPage() {
   const router = useRouter();
-  const [selectedTemple, setSelectedTemple] = useState("t1");
+  const [temples, setTemples] = useState<Temple[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedTempleId, setSelectedTempleId] = useState("");
   const [amount, setAmount] = useState("101");
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    const fetchTemples = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/temples");
+        const data = await res.json();
+        setTemples(data);
+        if (data.length > 0) {
+          setSelectedTempleId(data[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch temples:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTemples();
+  }, []);
+
   const handleDonate = () => {
-    const temple = temples.find(t => t.id === selectedTemple);
-    router.push(
-      `/payment?amount=${amount}&templeId=${selectedTemple}&templeName=${encodeURIComponent(
-        temple?.name || "Temple"
-      )}&type=Donation`
-    );
+    const temple = temples.find(t => t.id === selectedTempleId);
+    if (temple) {
+        router.push(
+            `/payment?amount=${amount}&templeId=${selectedTempleId}&templeName=${encodeURIComponent(
+                temple.name
+            )}&type=Donation`
+        );
+    }
   };
   
   const filteredTemples = temples.filter(temple => 
     temple.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
 
   return (
     <main className="flex-1 p-4 md:p-8">
@@ -75,49 +98,63 @@ export default function DonationsPage() {
                     />
                 </div>
             </div>
-            <RadioGroup
-              value={selectedTemple}
-              onValueChange={setSelectedTemple}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-              {filteredTemples.map((temple) => (
-                <Label
-                  key={temple.id}
-                  htmlFor={temple.id}
-                  className={`relative block rounded-lg border-2 bg-card p-4 cursor-pointer transition-all ${
-                    selectedTemple === temple.id
-                      ? "border-primary ring-2 ring-primary"
-                      : "border-border"
-                  }`}
+            {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({length: 2}).map((_, i) => (
+                        <div key={i} className="flex items-start gap-4 p-4 border rounded-lg">
+                            <Skeleton className="w-20 h-20 rounded-md"/>
+                            <div className="space-y-2">
+                                <Skeleton className="h-5 w-32"/>
+                                <Skeleton className="h-4 w-24"/>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <RadioGroup
+                value={selectedTempleId}
+                onValueChange={setSelectedTempleId}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
                 >
-                  <RadioGroupItem
-                    value={temple.id}
-                    id={temple.id}
-                    className="sr-only"
-                  />
-                  <div className="flex items-start gap-4">
-                    {temple.image && (
-                      <Image
-                        src={temple.image.imageUrl}
-                        alt={temple.name}
-                        width={80}
-                        height={80}
-                        className="rounded-md object-cover aspect-square"
-                        data-ai-hint={temple.image.imageHint}
-                      />
-                    )}
-                    <div>
-                      <p className="font-semibold text-card-foreground">
-                        {temple.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {temple.location}
-                      </p>
+                {filteredTemples.map((temple) => (
+                    <Label
+                    key={temple.id}
+                    htmlFor={temple.id}
+                    className={`relative block rounded-lg border-2 bg-card p-4 cursor-pointer transition-all ${
+                        selectedTempleId === temple.id
+                        ? "border-primary ring-2 ring-primary"
+                        : "border-border"
+                    }`}
+                    >
+                    <RadioGroupItem
+                        value={temple.id}
+                        id={temple.id}
+                        className="sr-only"
+                    />
+                    <div className="flex items-start gap-4">
+                        {temple.image && (
+                        <Image
+                            src={temple.image.imageUrl}
+                            alt={temple.name}
+                            width={80}
+                            height={80}
+                            className="rounded-md object-cover aspect-square"
+                            data-ai-hint={temple.image.imageHint}
+                        />
+                        )}
+                        <div>
+                        <p className="font-semibold text-card-foreground">
+                            {temple.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            {temple.location}
+                        </p>
+                        </div>
                     </div>
-                  </div>
-                </Label>
-              ))}
-            </RadioGroup>
+                    </Label>
+                ))}
+                </RadioGroup>
+            )}
           </CardContent>
         </Card>
 
@@ -153,7 +190,7 @@ export default function DonationsPage() {
               size="lg"
               className="w-full text-lg font-bold"
               onClick={handleDonate}
-              disabled={!amount || Number(amount) <= 0}
+              disabled={!amount || Number(amount) <= 0 || !selectedTempleId || isLoading}
             >
               <HeartHandshake className="mr-2 h-5 w-5" /> Proceed to Pay ${amount}
             </Button>

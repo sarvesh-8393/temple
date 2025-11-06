@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Card,
@@ -23,16 +23,35 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Star, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { type Product, products as allProducts } from "@/lib/db";
+import { type Product } from "@/lib/db";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function StorePage() {
   const { toast } = useToast();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        setAllProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
   
   const handleAddToCart = (product: Product) => {
     setCart(prevCart => [...prevCart, product]);
@@ -108,7 +127,23 @@ export default function StorePage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+                <Card key={index} className="flex flex-col overflow-hidden">
+                    <Skeleton className="h-56 w-full" />
+                    <CardHeader>
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                        <Skeleton className="h-8 w-full" />
+                    </CardContent>
+                    <CardFooter>
+                        <Skeleton className="h-10 w-full" />
+                    </CardFooter>
+                </Card>
+            ))
+        ) : filteredProducts.length > 0 ? (
           filteredProducts.map((product) => (
             <Card key={product.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               {product.image && (

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -21,14 +21,36 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { temples as allTemples } from "@/lib/db";
+import { type Temple } from "@/lib/db";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
-const heroImage = allTemples[0]?.image;
+const heroImage = {
+    imageUrl: "https://images.unsplash.com/photo-1621787084849-ed98731b3071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmRpYW4lMjB0ZW1wbGV8ZW58MHx8fHwxNzYyMzUyMzMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    imageHint: "indian temple"
+};
 
 export default function HomePage() {
+  const [allTemples, setAllTemples] = useState<Temple[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const fetchTemples = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/temples");
+        const data = await res.json();
+        setAllTemples(data);
+      } catch (error) {
+        console.error("Failed to fetch temples:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTemples();
+  }, []);
 
   const featuredTemples = allTemples.filter(
     (temple) =>
@@ -93,32 +115,47 @@ export default function HomePage() {
               </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredTemples.slice(0, 4).map((temple, index) => (
-              <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group">
-                {temple.image && (
-                    <div className="relative h-48 w-full">
-                    <Image
-                        src={temple.image.imageUrl}
-                        alt={temple.name}
-                        fill
-                        className="object-cover"
-                        data-ai-hint={temple.image.imageHint}
-                    />
-                    </div>
-                )}
-                <CardContent className="p-4">
-                  <h3 className="font-bold font-headline">{temple.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {temple.location}
-                  </p>
-                  <Button asChild variant="outline" size="sm" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Link href={`/temples/${temple.id}`}>View Details</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {isLoading ? (
+             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 4 }).map((_, index) => (
+                    <Card key={index} className="overflow-hidden shadow-lg">
+                        <Skeleton className="h-48 w-full" />
+                        <CardContent className="p-4">
+                            <Skeleton className="h-6 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-9 w-full mt-4" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredTemples.slice(0, 4).map((temple, index) => (
+                <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group">
+                    {temple.image && (
+                        <div className="relative h-48 w-full">
+                        <Image
+                            src={temple.image.imageUrl}
+                            alt={temple.name}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={temple.image.imageHint}
+                        />
+                        </div>
+                    )}
+                    <CardContent className="p-4">
+                    <h3 className="font-bold font-headline">{temple.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                        {temple.location}
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Link href={`/temples/${temple.id}`}>View Details</Link>
+                    </Button>
+                    </CardContent>
+                </Card>
+                ))}
+            </div>
+          )}
         </section>
         
         {/* 5. Subscription Benefits Section */}
