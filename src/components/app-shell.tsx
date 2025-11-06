@@ -159,8 +159,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-3 cursor-pointer">
                         <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.photoURL || userAvatar?.imageUrl} alt="User Avatar" data-ai-hint={userAvatar?.imageHint} />
-                        <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={user.photoURL || ''} alt="User Avatar" />
+                        <AvatarFallback>
+                          {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                         </Avatar>
                         <div className="text-right hidden sm:block">
                         <p className="font-semibold text-sm">{user.displayName || user.email}</p>
@@ -192,6 +194,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-2">
                      <Button asChild variant="ghost">
                         <Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Log In</Link>
+
                     </Button>
                     <Button asChild>
                         <Link href="/signup"><UserPlus className="mr-2 h-4 w-4"/>Sign Up</Link>
