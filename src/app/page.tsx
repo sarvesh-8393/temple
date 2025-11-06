@@ -113,7 +113,7 @@ export default function HomePage() {
                     {temple.location}
                   </p>
                   <Button asChild variant="outline" size="sm" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Link href="/poojas">View Details</Link>
+                    <Link href={`/temples/${temple.id}`}>View Details</Link>
                   </Button>
                 </CardContent>
               </Card>
