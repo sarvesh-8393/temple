@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
+import Image from "next/image";
+import { useState } from "react";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { useFirebaseApp } from "@/firebase/provider";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building, Upload, PlusCircle, Trash2, IndianRupee } from "lucide-react";
@@ -32,11 +37,16 @@ const formSchema = z.object({
   zipCode: z.string().regex(/^\d{5,6}$/, "Must be a valid zip code."),
   description: z.string().min(20, "Description must be at least 20 characters.").max(500),
   contactEmail: z.string().email("Invalid email address."),
+  imageUrl: z.string().url("A valid image URL is required."),
   poojas: z.array(poojaSchema).optional(),
 });
 
 export default function RegisterTemplePage() {
   const { toast } = useToast();
+  const firebaseApp = useFirebaseApp();
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,6 +57,7 @@ export default function RegisterTemplePage() {
       zipCode: "",
       description: "",
       contactEmail: "",
+      imageUrl: "",
       poojas: [{ name: "", price: 0 }],
     },
   });
@@ -55,6 +66,44 @@ export default function RegisterTemplePage() {
     control: form.control,
     name: "poojas",
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const storage = getStorage(firebaseApp);
+    const storageRef = ref(storage, `temple-images/${Date.now()}-${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload failed:", error);
+        toast({
+          variant: "destructive",
+          title: "Upload Failed",
+          description: "There was an error uploading your image. Please try again.",
+        });
+        setIsUploading(false);
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          form.setValue("imageUrl", downloadURL);
+          toast({
+            title: "Upload Successful",
+            description: "Your temple image has been uploaded.",
+          });
+          setIsUploading(false);
+        });
+      }
+    );
+  };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
@@ -69,6 +118,7 @@ export default function RegisterTemplePage() {
         description: "Your temple profile has been submitted for review. We will notify you upon approval.",
       });
       form.reset();
+      setUploadProgress(0);
     }, 2000);
   }
 
@@ -188,6 +238,27 @@ export default function RegisterTemplePage() {
                   )}
                 />
 
+                <FormItem>
+                  <FormLabel>Temple Photo</FormLabel>
+                  <FormControl>
+                    <Input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/*" disabled={isUploading} />
+                  </FormControl>
+                   <Button asChild variant="outline" className="w-full" disabled={isUploading}>
+                    <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
+                        <Upload className="w-4 h-4"/>
+                        <span>{isUploading ? 'Uploading...' : 'Choose an Image'}</span>
+                    </label>
+                   </Button>
+                   {isUploading && <Progress value={uploadProgress} className="w-full mt-2" />}
+                   {form.watch("imageUrl") && !isUploading && (
+                     <div className="mt-4 relative w-full h-64 rounded-lg overflow-hidden border">
+                       <Image src={form.watch("imageUrl")} alt="Temple preview" fill className="object-cover"/>
+                     </div>
+                   )}
+                  <FormDescription>Upload a high-quality photo of your temple.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+
                 <div>
                   <FormLabel>Poojas Offered</FormLabel>
                   <FormDescription className="mb-4">Add the poojas available at your temple.</FormDescription>
@@ -247,20 +318,7 @@ export default function RegisterTemplePage() {
                   </div>
                 </div>
 
-                <FormItem>
-                  <FormLabel>Temple Photos</FormLabel>
-                  <FormControl>
-                    <Button variant="outline" className="w-full flex gap-2 items-center cursor-pointer">
-                      <Upload className="w-4 h-4" />
-                      Upload Images
-                      <Input type="file" className="sr-only" multiple />
-                    </Button>
-                  </FormControl>
-                  <FormDescription>Upload high-quality photos of your temple (simulated).</FormDescription>
-                </FormItem>
-
-
-                <Button type="submit" size="lg" className="w-full">
+                <Button type="submit" size="lg" className="w-full" disabled={isUploading || !form.formState.isValid}>
                   Submit for Review
                 </Button>
               </form>
