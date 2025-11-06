@@ -54,6 +54,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // For mock, we'll just show the toast.
   };
   
+  // Hide shell on login/signup pages
+  const authRoutes = ['/login', '/signup'];
+  if (authRoutes.includes(pathname)) {
+      return <main className="flex flex-1 flex-col">{children}</main>;
+  }
+  
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 z-30">
@@ -139,8 +145,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </DropdownMenu>
                 </>
             ) : (
-                // This part is now less relevant with mock data but kept for structure
-                <p>Please log in</p>
+                <Button asChild>
+                    <Link href="/login">Login</Link>
+                </Button>
             )}
         </div>
       </header>
