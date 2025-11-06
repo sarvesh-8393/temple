@@ -95,7 +95,7 @@ export default function RegisterTemplePage() {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            form.setValue("imageUrl", downloadURL);
+            form.setValue("imageUrl", downloadURL, { shouldValidate: true });
             toast({
               title: "Upload Successful",
               description: "Your temple image has been uploaded.",
@@ -291,26 +291,33 @@ export default function RegisterTemplePage() {
                   )}
                 />
 
-                <FormItem>
-                  <FormLabel>Temple Photo</FormLabel>
-                  <FormControl>
-                    <Input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/*" disabled={isUploading} />
-                  </FormControl>
-                   <Button asChild variant="outline" className="w-full" disabled={isUploading}>
-                    <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
-                        <Upload className="w-4 h-4"/>
-                        <span>{isUploading ? 'Uploading...' : 'Choose an Image'}</span>
-                    </label>
-                   </Button>
-                   {isUploading && <Progress value={uploadProgress} className="w-full mt-2" />}
-                   {form.watch("imageUrl") && !isUploading && (
-                     <div className="mt-4 relative w-full h-64 rounded-lg overflow-hidden border">
-                       <Image src={form.watch("imageUrl")} alt="Temple preview" fill className="object-cover"/>
-                     </div>
-                   )}
-                  <FormDescription>Upload a high-quality photo of your temple.</FormDescription>
-                  <FormMessage />
-                </FormItem>
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Temple Photo</FormLabel>
+                        <FormControl>
+                            <Input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/*" disabled={isUploading} />
+                        </FormControl>
+                        <Button asChild variant="outline" className="w-full" disabled={isUploading}>
+                            <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
+                                <Upload className="w-4 h-4"/>
+                                <span>{isUploading ? 'Uploading...' : 'Choose an Image'}</span>
+                            </label>
+                        </Button>
+                        {isUploading && <Progress value={uploadProgress} className="w-full mt-2" />}
+                        {field.value && !isUploading && (
+                            <div className="mt-4 relative w-full h-64 rounded-lg overflow-hidden border">
+                            <Image src={field.value} alt="Temple preview" fill className="object-cover"/>
+                            </div>
+                        )}
+                        <FormDescription>Upload a high-quality photo of your temple. This is required.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
 
                 <div>
                   <FormLabel>Poojas Offered</FormLabel>
