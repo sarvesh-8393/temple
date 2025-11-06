@@ -8,20 +8,48 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
+import { useState } from 'react';
 
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    toast({
-      title: 'Login Successful',
-      description: 'Welcome back!',
-    });
-    // In a real app with auth, you'd handle state change.
-    // Here, we just redirect.
-    router.push('/');
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        title: 'Login Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,21 +69,23 @@ export default function LoginPage() {
                 <Label htmlFor="email">Email</Label>
                 <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="devotee@example.com"
-                    defaultValue="devotee@example.com"
+                    defaultValue="devotee.user@example.com"
                     required
                 />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" defaultValue="password" required />
+                <Input id="password" name="password" type="password" defaultValue="password" required />
             </div>
           <Button
             type="submit"
             className="w-full"
+            disabled={isLoading}
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
