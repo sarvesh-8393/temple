@@ -71,38 +71,89 @@ export default function RegisterTemplePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const storage = getStorage(firebaseApp);
-    const storageRef = ref(storage, `temple-images/${Date.now()}-${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
     setIsUploading(true);
     setUploadProgress(0);
 
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Upload failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Upload Failed",
-          description: "There was an error uploading your image. Please try again.",
-        });
-        setIsUploading(false);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          form.setValue("imageUrl", downloadURL);
+    // --- Image Optimization Logic ---
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.createElement("img");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 1024;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              toast({
+                variant: "destructive",
+                title: "Image Processing Failed",
+                description: "Could not process the image for upload.",
+              });
+              setIsUploading(false);
+              return;
+            }
+            uploadFile(blob);
+          },
+          "image/jpeg",
+          0.9 // 90% quality
+        );
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    // --- End Image Optimization ---
+
+    const uploadFile = (fileToUpload: File | Blob) => {
+      const storage = getStorage(firebaseApp);
+      const storageRef = ref(storage, `temple-images/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
           toast({
-            title: "Upload Successful",
-            description: "Your temple image has been uploaded.",
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "There was an error uploading your image. Please try again.",
           });
           setIsUploading(false);
-        });
-      }
-    );
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            form.setValue("imageUrl", downloadURL);
+            toast({
+              title: "Upload Successful",
+              description: "Your temple image has been uploaded.",
+            });
+            setIsUploading(false);
+          });
+        }
+      );
+    }
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
