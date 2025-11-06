@@ -2,14 +2,6 @@
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export interface Temple {
-  id: string;
-  name: string;
-  location: string;
-  description: string;
-  image: ImagePlaceholder;
-}
-
 export interface Pooja {
     id: string;
     name: string;
@@ -19,6 +11,15 @@ export interface Pooja {
     price: number;
     image: ImagePlaceholder;
     tags: string[];
+}
+
+export interface Temple {
+  id: string;
+  name: string;
+  location: string;
+  description: string;
+  image: ImagePlaceholder;
+  poojas: Pooja[];
 }
 
 export interface Product {
@@ -39,44 +40,7 @@ export interface User {
     bio: string;
 }
 
-const heroImage = PlaceHolderImages.find((img) => img.id === 'temple-south');
-const templeNorth = PlaceHolderImages.find((img) => img.id === 'temple-north');
-const poojaGanesh = PlaceHolderImages.find((img) => img.id === 'pooja-ganesh');
-const poojaLakshmi = PlaceHolderImages.find((img) => img.id === 'pooja-lakshmi');
-
-export const temples: Temple[] = [
-    {
-      id: 't1',
-      name: 'Sri Venkateswara Temple',
-      location: 'Tirupati, Andhra Pradesh',
-      description: 'A landmark Vaishnavite temple situated in the hill town of Tirumala at Tirupati in Tirupati district of Andhra Pradesh, India.',
-      image: heroImage!,
-    },
-    {
-      id: 't2',
-      name: 'Kashi Vishwanath Temple',
-      location: 'Varanasi, Uttar Pradesh',
-      description: 'One of the most famous Hindu temples dedicated to Lord Shiva. It is located in Varanasi, Uttar Pradesh, India.',
-      image: templeNorth!,
-    },
-     {
-      id: 't3',
-      name: 'Ganesh Temple',
-      location: 'Mumbai, Maharashtra',
-      description: 'A famous temple dedicated to Lord Ganesh, attracting many devotees daily.',
-      image: poojaGanesh!,
-    },
-    {
-      id: 't4',
-      name: 'Lakshmi Temple',
-      location: 'Jaipur, Rajasthan',
-      description: 'A beautiful temple dedicated to the goddess of wealth, Lakshmi.',
-      image: poojaLakshmi!,
-    },
-  ];
-  
-
-export const poojas: Pooja[] = [
+const allPoojas: Pooja[] = [
   {
     id: 'p1',
     name: 'Ganesh Pooja',
@@ -138,6 +102,51 @@ export const poojas: Pooja[] = [
     tags: ['Astrology', 'Well-being'],
   },
 ];
+
+
+export const temples: Temple[] = [
+    {
+      id: 't1',
+      name: 'Sri Venkateswara Temple',
+      location: 'Tirupati, Andhra Pradesh',
+      description: 'A landmark Vaishnavite temple situated in the hill town of Tirumala at Tirupati in Tirupati district of Andhra Pradesh, India.',
+      image: PlaceHolderImages.find((img) => img.id === 'temple-south')!,
+      poojas: allPoojas.slice(0, 3)
+    },
+    {
+      id: 't2',
+      name: 'Kashi Vishwanath Temple',
+      location: 'Varanasi, Uttar Pradesh',
+      description: 'One of the most famous Hindu temples dedicated to Lord Shiva. It is located in Varanasi, Uttar Pradesh, India.',
+      image: PlaceHolderImages.find((img) => img.id === 'temple-north')!,
+      poojas: allPoojas.slice(3, 6)
+    },
+     {
+      id: 't3',
+      name: 'Ganesh Temple',
+      location: 'Mumbai, Maharashtra',
+      description: 'A famous temple dedicated to Lord Ganesh, attracting many devotees daily.',
+      image: PlaceHolderImages.find((img) => img.id === 'pooja-ganesh')!,
+      poojas: [allPoojas[0], allPoojas[4]]
+    },
+    {
+      id: 't4',
+      name: 'Lakshmi Temple',
+      location: 'Jaipur, Rajasthan',
+      description: 'A beautiful temple dedicated to the goddess of wealth, Lakshmi.',
+      image: PlaceHolderImages.find((img) => img.id === 'pooja-lakshmi')!,
+      poojas: [allPoojas[2]]
+    },
+  ];
+  
+// For the main poojas page, we'll flatten the list of poojas from all temples
+export const poojas = temples.flatMap(temple => 
+    temple.poojas.map(pooja => ({
+        ...pooja,
+        templeName: temple.name,
+        templeLocation: temple.location
+    }))
+);
 
 
 export const products: Product[] = [
