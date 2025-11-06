@@ -63,5 +63,8 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "env": {
+    "NEXT_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_XXXXXXXXXXXXXX"
   }
 }

@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,15 +23,15 @@ function PaymentPageContent() {
   const amount = searchParams.get('amount') || '0';
   const templeName = searchParams.get('templeName') || 'the temple';
   const type = searchParams.get('type') || 'Payment';
-
+  
   const handlePayment = () => {
     const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
-        amount: Number(amount) * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: Number(amount) * 100, // Amount is in currency subunits.
         currency: "INR",
         name: "TempleConnect",
         description: `${type} for ${templeName}`,
-        image: "https://example.com/your_logo.jpg", // A logo for checkout
+        image: "https://images.unsplash.com/photo-1621787084849-ed98731b3071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmRpYW4lMjB0ZW1wbGV8ZW58MHx8fHwxNzYyMzUyMzMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
         handler: function (response: any){
             toast({
                 title: "Payment Successful!",
@@ -42,23 +42,31 @@ function PaymentPageContent() {
         prefill: {
             name: user.displayName,
             email: user.email,
-            contact: "9999999999"
+            contact: "9999999999" // This should be dynamic in a real app
         },
         notes: {
             address: "TempleConnect Corporate Office"
         },
         theme: {
-            "color": "#36a36b"
+            "color": "#F59E0B" // Using primary color from theme
         }
     };
     
-    // Check if Razorpay is loaded
+    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+      toast({
+        title: "Configuration Error",
+        description: "Razorpay Key ID is not configured. Please set it in your environment variables.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (window.Razorpay) {
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', function (response: any){
                 toast({
                     title: "Payment Failed",
-                    description: `Error: ${response.error.description}`,
+                    description: `${response.error.description} (Code: ${response.error.code})`,
                     variant: "destructive"
                 });
         });
@@ -66,7 +74,7 @@ function PaymentPageContent() {
     } else {
         toast({
             title: "Error",
-            description: "Razorpay script not loaded. Please try again.",
+            description: "Razorpay script not loaded. Please check your internet connection and try again.",
             variant: "destructive"
         })
     }
@@ -86,7 +94,7 @@ function PaymentPageContent() {
         </CardHeader>
         <CardContent className="space-y-4">
             <div className="flex justify-between items-center text-lg p-4 border rounded-lg">
-                <span>Total Amount:</span>
+                <span>Total Amount (USD estimate):</span>
                 <span className="font-bold text-2xl text-primary">${amount}</span>
             </div>
             <p className='text-sm text-muted-foreground'>
@@ -103,7 +111,6 @@ function PaymentPageContent() {
   );
 }
 
-// Using Suspense to handle client-side rendering of components that use searchParams
 export default function PaymentPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
