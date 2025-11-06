@@ -74,6 +74,38 @@ export default function RegisterTemplePage() {
     setIsUploading(true);
     setUploadProgress(0);
 
+    const uploadFile = (fileToUpload: File | Blob) => {
+      const storage = getStorage(firebaseApp);
+      const storageRef = ref(storage, `temple-images/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          toast({
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "There was an error uploading your image. Please try again.",
+          });
+          setIsUploading(false);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            form.setValue("imageUrl", downloadURL);
+            toast({
+              title: "Upload Successful",
+              description: "Your temple image has been uploaded.",
+            });
+            setIsUploading(false);
+          });
+        }
+      );
+    }
+    
     // --- Image Optimization Logic ---
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -118,42 +150,12 @@ export default function RegisterTemplePage() {
           0.9 // 90% quality
         );
       };
-      img.src = event.target?.result as string;
+      if (event.target?.result) {
+        img.src = event.target.result as string;
+      }
     };
     reader.readAsDataURL(file);
     // --- End Image Optimization ---
-
-    const uploadFile = (fileToUpload: File | Blob) => {
-      const storage = getStorage(firebaseApp);
-      const storageRef = ref(storage, `temple-images/${Date.now()}-${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
-
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error("Upload failed:", error);
-          toast({
-            variant: "destructive",
-            title: "Upload Failed",
-            description: "There was an error uploading your image. Please try again.",
-          });
-          setIsUploading(false);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            form.setValue("imageUrl", downloadURL);
-            toast({
-              title: "Upload Successful",
-              description: "Your temple image has been uploaded.",
-            });
-            setIsUploading(false);
-          });
-        }
-      );
-    }
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
