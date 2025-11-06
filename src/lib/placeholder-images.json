@@ -1,3 +1,88 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "pooja-ganesh",
+      "description": "A vibrant Ganesh Pooja ceremony with offerings.",
+      "imageUrl": "https://images.unsplash.com/photo-1679141435935-7d8ff9659c9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxoaW5kdSUyMGNlcmVtb255fGVufDB8fHx8MTc2MjQxMjE5Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hindu ceremony"
+    },
+    {
+      "id": "pooja-satyanarayan",
+      "description": "Devotees participating in a Satyanarayan Pooja.",
+      "imageUrl": "https://images.unsplash.com/photo-1761316945926-51b6c682c190?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyZWxpZ2lvdXMlMjBnYXRoZXJpbmd8ZW58MHx8fHwxNzYyNDEyMTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "religious gathering"
+    },
+    {
+      "id": "pooja-lakshmi",
+      "description": "An altar decorated for Lakshmi Pooja during Diwali.",
+      "imageUrl": "https://images.unsplash.com/photo-1667670651830-2d5bcd0e4f8f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkaXdhbGklMjBmZXN0aXZhbHxlbnwwfHx8fDE3NjI0MTIxOTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "diwali festival"
+    },
+    {
+      "id": "pooja-havan",
+      "description": "A priest performing a Havan (fire ritual).",
+      "imageUrl": "https://images.unsplash.com/photo-1705952484283-19c31e37e0e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmaXJlJTIwcml0dWFsfGVufDB8fHx8MTc2MjMyNjE0M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fire ritual"
+    },
+    {
+      "id": "pooja-saraswati",
+      "description": "Idol of Goddess Saraswati being worshipped.",
+      "imageUrl": "https://images.unsplash.com/photo-1612840540277-f5a8284bdc5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoaW5kdSUyMGdvZGRlc3N8ZW58MHx8fHwxNzYyNDEyMTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hindu goddess"
+    },
+    {
+      "id": "pooja-navagraha",
+      "description": "Offerings for a Navagraha (nine planets) Pooja.",
+      "imageUrl": "https://images.unsplash.com/photo-1603667429412-17cd56a6e8dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YXN0cm9sb2d5JTIwcml0dWFsfGVufDB8fHx8MTc2MjQxMjE5Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "astrology ritual"
+    },
+    {
+      "id": "product-prasad",
+      "description": "A box of assorted sweet prasad.",
+      "imageUrl": "https://images.unsplash.com/photo-1543773495-2cd9248a5bda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxpbmRpYW4lMjBzd2VldHN8ZW58MHx8fHwxNzYyMzUwMDQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "indian sweets"
+    },
+    {
+      "id": "product-diya",
+      "description": "Set of decorative brass diyas (oil lamps).",
+      "imageUrl": "https://images.unsplash.com/photo-1753109818544-d2e81124a0c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxicmFzcyUyMGxhbXB8ZW58MHx8fHwxNzYyNDEyMTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "brass lamp"
+    },
+    {
+      "id": "product-incense",
+      "description": "Aromatic incense sticks for worship.",
+      "imageUrl": "https://images.unsplash.com/photo-1634833133038-f849eef43beb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxpbmNlbnNlJTIwc3RpY2tzfGVufDB8fHx8MTc2MjQxMTcwN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "incense sticks"
+    },
+    {
+      "id": "product-murti",
+      "description": "A small marble statue of Lord Krishna.",
+      "imageUrl": "https://images.unsplash.com/photo-1572780639748-7a06927ef6df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtYXJibGUlMjBzdGF0dWV8ZW58MHx8fHwxNzYyMzQ5MTAzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "marble statue"
+    },
+    {
+      "id": "temple-south",
+      "description": "A grand South Indian style temple with intricate gopuram.",
+      "imageUrl": "https://images.unsplash.com/photo-1621787084849-ed98731b3071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmRpYW4lMjB0ZW1wbGV8ZW58MHx8fHwxNzYyMzUyMzMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "indian temple"
+    },
+    {
+      "id": "temple-north",
+      "description": "A serene North Indian temple by a river.",
+      "imageUrl": "https://images.unsplash.com/photo-1717900001174-328f516c4abe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxoaW5kdSUyMGFyY2hpdGVjdHVyZXxlbnwwfHx8fDE3NjI0MTIxOTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hindu architecture"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "User avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjIzNzk2MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "premium-plan",
+      "description": "Golden plan background",
+      "imageUrl": "https://images.unsplash.com/photo-1545873681-d8affd67677b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxnb2xkJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjIzMzU3NTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gold texture"
+    }
+  ]
 }
