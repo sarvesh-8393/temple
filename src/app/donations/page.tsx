@@ -3,6 +3,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -14,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from "@/hooks/use-toast";
 import { HeartHandshake } from "lucide-react";
 import { DiyaIcon } from "@/components/icons";
 import { temples } from "@/lib/db";
@@ -22,27 +22,17 @@ import { temples } from "@/lib/db";
 const presetAmounts = [51, 101, 251, 501, 1001];
 
 export default function DonationsPage() {
-  const { toast } = useToast();
+  const router = useRouter();
   const [selectedTemple, setSelectedTemple] = useState("t1");
   const [amount, setAmount] = useState("101");
 
   const handleDonate = () => {
-    toast({
-      title: "Processing Donation...",
-      description: "Please wait while we securely process your payment.",
-    });
-
-    setTimeout(() => {
-      toast({
-        title: "Donation Successful!",
-        description: `Thank you for your generous donation of $${amount}. A confirmation email has been sent.`,
-        action: (
-          <div className="p-2 rounded-full bg-primary/20">
-            <HeartHandshake className="text-primary" />
-          </div>
-        ),
-      });
-    }, 2000);
+    const temple = temples.find(t => t.id === selectedTemple);
+    router.push(
+      `/payment?amount=${amount}&templeId=${selectedTemple}&templeName=${encodeURIComponent(
+        temple?.name || "Temple"
+      )}&type=Donation`
+    );
   };
 
   return (
@@ -148,10 +138,10 @@ export default function DonationsPage() {
               onClick={handleDonate}
               disabled={!amount || Number(amount) <= 0}
             >
-              <HeartHandshake className="mr-2 h-5 w-5" /> Donate ${amount}
+              <HeartHandshake className="mr-2 h-5 w-5" /> Proceed to Pay ${amount}
             </Button>
             <p className="text-center text-xs text-muted-foreground mt-4">
-              Powered by a secure payment gateway.
+              You will be redirected to our secure payment gateway.
             </p>
           </CardContent>
         </Card>
