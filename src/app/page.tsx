@@ -124,34 +124,6 @@ export default function HomePage() {
           </div>
         </section>
         
-        {/* 4. How It Works Section */}
-        <section className="mb-16 md:mb-24 bg-muted/50 rounded-lg p-8 md:p-12">
-            <h2 className="text-3xl font-headline font-bold text-center mb-8">How It Works</h2>
-            <div className="grid md:grid-cols-3 gap-8 text-center">
-                <div className="flex flex-col items-center">
-                    <div className="flex items-center justify-center bg-primary/10 rounded-full h-16 w-16 mb-4">
-                        <Search className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">1. Browse Temples</h3>
-                    <p className="text-muted-foreground">Find temples and explore services like pujas and events.</p>
-                </div>
-                <div className="flex flex-col items-center">
-                    <div className="flex items-center justify-center bg-primary/10 rounded-full h-16 w-16 mb-4">
-                        <HeartHandshake className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">2. Make Donations / Book Pujas</h3>
-                    <p className="text-muted-foreground">Securely complete your transaction in just a few clicks.</p>
-                </div>
-                <div className="flex flex-col items-center">
-                    <div className="flex items-center justify-center bg-primary/10 rounded-full h-16 w-16 mb-4">
-                        <CheckCircle className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">3. Get Instant Confirmation</h3>
-                    <p className="text-muted-foreground">Receive immediate confirmation for your booking or donation.</p>
-                </div>
-            </div>
-        </section>
-
         {/* 5. Subscription Benefits Section */}
         <section className="text-center">
             <h2 className="text-3xl font-headline font-bold mb-4">Unlock Premium Benefits</h2>
