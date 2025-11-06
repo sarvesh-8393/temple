@@ -99,7 +99,7 @@ export default function HomePage() {
           <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
             We provide a seamless and secure bridge between you and your spiritual journey.
           </p>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="text-center shadow-md">
               <CardHeader>
                 <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
@@ -123,19 +123,6 @@ export default function HomePage() {
               <CardContent>
                 <p>
                   Book your pujas anytime, anywhere, with instant confirmations.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center shadow-md">
-              <CardHeader>
-                <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
-                    <Star className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="pt-2">Unlimited Access</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>
-                  No fees, no limits, and premium features with our subscription plan.
                 </p>
               </CardContent>
             </Card>
