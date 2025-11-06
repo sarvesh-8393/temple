@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,16 +17,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Building, Upload } from "lucide-react";
+import { Building, Upload, PlusCircle, Trash2, IndianRupee } from "lucide-react";
+
+const poojaSchema = z.object({
+  name: z.string().min(1, "Pooja name is required."),
+  price: z.coerce.number().min(0, "Price must be a positive number."),
+});
 
 const formSchema = z.object({
   templeName: z.string().min(2, "Temple name must be at least 2 characters."),
   address: z.string().min(10, "Address must be at least 10 characters."),
   city: z.string().min(2, "City is required."),
   state: z.string().min(2, "State is required."),
-  zipCode: z.string().regex(/^\d{5}$/, "Must be a valid 5-digit zip code."),
+  zipCode: z.string().regex(/^\d{5,6}$/, "Must be a valid zip code."),
   description: z.string().min(20, "Description must be at least 20 characters.").max(500),
   contactEmail: z.string().email("Invalid email address."),
+  poojas: z.array(poojaSchema).optional(),
 });
 
 export default function RegisterTemplePage() {
@@ -41,7 +47,13 @@ export default function RegisterTemplePage() {
       zipCode: "",
       description: "",
       contactEmail: "",
+      poojas: [{ name: "", price: 0 }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "poojas",
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -175,6 +187,65 @@ export default function RegisterTemplePage() {
                     </FormItem>
                   )}
                 />
+
+                <div>
+                  <FormLabel>Poojas Offered</FormLabel>
+                  <FormDescription className="mb-4">Add the poojas available at your temple.</FormDescription>
+                  <div className="space-y-4">
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex items-end gap-4 p-4 border rounded-lg">
+                        <FormField
+                          control={form.control}
+                          name={`poojas.${index}.name`}
+                          render={({ field }) => (
+                            <FormItem className="flex-grow">
+                              <FormLabel>Pooja Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., Ganesh Pooja" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`poojas.${index}.price`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Price</FormLabel>
+                              <div className="relative">
+                                <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <FormControl>
+                                  <Input type="number" placeholder="101" className="pl-8" {...field} />
+                                </FormControl>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => remove(index)}
+                          disabled={fields.length <= 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Remove Pooja</span>
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => append({ name: "", price: 0 })}
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Pooja
+                    </Button>
+                  </div>
+                </div>
 
                 <FormItem>
                   <FormLabel>Temple Photos</FormLabel>
