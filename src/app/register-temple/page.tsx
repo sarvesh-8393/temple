@@ -56,6 +56,7 @@ export default function RegisterTemplePage() {
       imageUrl: "",
       poojas: [{ name: "", price: 0 }],
     },
+    mode: "onChange",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -64,6 +65,15 @@ export default function RegisterTemplePage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!firestore) {
+        toast({
+            variant: "destructive",
+            title: "Database Error",
+            description: "Could not connect to the database. Please try again later.",
+        });
+        return;
+    }
+    
     toast({
       title: "Submitting Registration...",
       description: "Please wait while we process your temple's information.",
@@ -281,7 +291,7 @@ export default function RegisterTemplePage() {
                   </div>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full" disabled={!form.formState.isValid}>
+                <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
                   Submit for Review
                 </Button>
               </form>
