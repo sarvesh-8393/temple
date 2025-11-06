@@ -112,8 +112,8 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground">
                     {temple.location}
                   </p>
-                  <Button variant="outline" size="sm" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground">
-                    View Details
+                  <Button asChild variant="outline" size="sm" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Link href="/poojas">View Details</Link>
                   </Button>
                 </CardContent>
               </Card>
