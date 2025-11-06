@@ -19,42 +19,11 @@ import {
   Search,
   CheckCircle,
 } from "lucide-react";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Badge } from "@/components/ui/badge";
+import { temples as featuredTemples } from "@/lib/db";
 
-const heroImage = PlaceHolderImages.find((img) => img.id === "temple-south");
-const templeNorth = PlaceHolderImages.find(
-  (img) => img.id === "temple-north"
-);
-const poojaGanesh = PlaceHolderImages.find(
-  (img) => img.id === "pooja-ganesh"
-);
-const poojaLakshmi = PlaceHolderImages.find(
-  (img) => img.id === "pooja-lakshmi"
-);
 
-const featuredTemples = [
-  {
-    name: "Sri Venkateswara Temple",
-    location: "Tirupati, Andhra Pradesh",
-    image: heroImage,
-  },
-  {
-    name: "Kashi Vishwanath Temple",
-    location: "Varanasi, Uttar Pradesh",
-    image: templeNorth,
-  },
-  {
-    name: "Ganesh Temple",
-    location: "Mumbai, Maharashtra",
-    image: poojaGanesh,
-  },
-  {
-    name: "Lakshmi Temple",
-    location: "Jaipur, Rajasthan",
-    image: poojaLakshmi,
-  },
-];
+const heroImage = featuredTemples[0]?.image;
 
 export default function HomePage() {
   return (
@@ -97,7 +66,7 @@ export default function HomePage() {
             Featured Temples
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredTemples.map((temple, index) => (
+            {featuredTemples.slice(0, 4).map((temple, index) => (
               <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group">
                 {temple.image && (
                     <div className="relative h-48 w-full">

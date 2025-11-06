@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -21,74 +22,10 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock } from "lucide-react";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import { OmIcon } from "@/components/icons";
+import { type Pooja, poojas } from "@/lib/db";
 
-const poojas = [
-  {
-    id: "p1",
-    name: "Ganesh Pooja",
-    description: "A special pooja to seek the blessings of Lord Ganesha for success and removal of obstacles.",
-    date: "July 28, 2024",
-    time: "8:00 AM - 10:00 AM",
-    price: 51,
-    image: PlaceHolderImages.find((img) => img.id === "pooja-ganesh"),
-    tags: ["New Beginnings", "Success"],
-  },
-  {
-    id: "p2",
-    name: "Satyanarayan Pooja",
-    description: "A ritual to honor Lord Vishnu and seek his blessings for health, wealth, and prosperity.",
-    date: "August 5, 2024",
-    time: "6:00 PM - 8:00 PM",
-    price: 101,
-    image: PlaceHolderImages.find((img) => img.id === "pooja-satyanarayan"),
-    tags: ["Prosperity", "Family"],
-  },
-  {
-    id: "p3",
-    name: "Lakshmi Pooja",
-    description: "Invoke the goddess of wealth and fortune for financial well-being and abundance.",
-    date: "August 12, 2024",
-    time: "7:00 PM - 8:30 PM",
-    price: 75,
-    image: PlaceHolderImages.find((img) => img.id === "pooja-lakshmi"),
-    tags: ["Wealth", "Diwali Special"],
-  },
-  {
-    id: "p4",
-    name: "Havan / Yagna",
-    description: "A fire ritual to purify the environment and invoke divine energies for spiritual growth.",
-    date: "Upon Request",
-    time: "Flexible",
-    price: 251,
-    image: PlaceHolderImages.find((img) => img.id === "pooja-havan"),
-    tags: ["Purification", "Spiritual"],
-  },
-  {
-    id: "p5",
-    name: "Saraswati Pooja",
-    description: "Dedicated to the goddess of knowledge, music, and arts. Ideal for students and artists.",
-    date: "August 20, 2024",
-    time: "9:00 AM - 11:00 AM",
-    price: 61,
-    image: PlaceHolderImages.find((img) => img.id === "pooja-saraswati"),
-    tags: ["Knowledge", "Education"],
-  },
-  {
-    id: "p6",
-    name: "Navagraha Pooja",
-    description: "A pooja to appease the nine planets and mitigate their negative effects on one's life.",
-    date: "Upon Request",
-    time: "Flexible",
-    price: 151,
-    image: PlaceHolderImages.find((img) => img.id === "pooja-navagraha"),
-    tags: ["Astrology", "Well-being"],
-  },
-];
-
-type Pooja = (typeof poojas)[0];
 
 export default function PoojasPage() {
   const { toast } = useToast();

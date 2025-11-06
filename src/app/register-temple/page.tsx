@@ -4,8 +4,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useFirestore } from "@/firebase/provider";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,7 +19,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building, PlusCircle, Trash2, IndianRupee } from "lucide-react";
-import { errorEmitter, FirestorePermissionError } from "@/firebase";
 
 const poojaSchema = z.object({
   name: z.string().min(1, "Pooja name is required."),
@@ -42,7 +39,6 @@ const formSchema = z.object({
 
 export default function RegisterTemplePage() {
   const { toast } = useToast();
-  const firestore = useFirestore();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,50 +62,20 @@ export default function RegisterTemplePage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!firestore) {
-        toast({
-            variant: "destructive",
-            title: "Database Error",
-            description: "Could not connect to the database. Please try again later.",
-        });
-        return;
-    }
-    
     toast({
       title: "Submitting Registration...",
       description: "Please wait while we process your temple's information.",
     });
 
-    const templesCollection = collection(firestore, "temples");
-    addDoc(templesCollection, {
-      ...values,
-      createdAt: serverTimestamp(),
-    })
-      .then(() => {
+    // Simulate backend processing
+    setTimeout(() => {
+        console.log("Form Data:", values);
         toast({
-          title: "Registration Submitted!",
-          description: "Your temple profile has been submitted for review. We will notify you upon approval.",
+            title: "Registration Submitted!",
+            description: "Your temple profile has been submitted for review. We will notify you upon approval.",
         });
         form.reset();
-      })
-      .catch((error) => {
-        console.error("Error adding document: ", error);
-        
-        const permissionError = new FirestorePermissionError({
-          path: templesCollection.path,
-          operation: 'create',
-          requestResourceData: values,
-        });
-        
-        errorEmitter.emit('permission-error', permissionError);
-        
-        // This toast is for user feedback, not for debugging the raw error.
-        toast({
-          variant: "destructive",
-          title: "Submission Failed",
-          description: "There was an error submitting your registration. Please check your permissions and try again.",
-        });
-      });
+    }, 1500);
   }
 
   return (
@@ -314,5 +280,3 @@ export default function RegisterTemplePage() {
     </main>
   );
 }
-
-    

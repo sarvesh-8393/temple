@@ -3,15 +3,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Building,
   LogOut,
   Settings,
   User,
   Menu,
-  LogIn,
-  UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -27,15 +25,10 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Logo } from "@/components/logo";
 import { Button } from "./ui/button";
-import { useUser, useAuth } from "@/firebase";
-import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "./ui/skeleton";
-
-const userAvatar = PlaceHolderImages.find((img) => img.id === "user-avatar-1");
+import { user } from "@/lib/db";
 
 const navItems = [
   { href: "/", label: "Dashboard" },
@@ -44,66 +37,23 @@ const navItems = [
   { href: "/donations", label: "Donations" },
 ];
 
-const publicPages = ["/login", "/signup"];
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    // If loading is finished and there's no user, redirect to login page
-    // unless they are already on a public page.
-    if (!isUserLoading && !user && !publicPages.includes(pathname)) {
-      router.push("/login");
-    }
-  }, [user, isUserLoading, pathname, router]);
+  // Since we are using mock data, we can consider the user always logged in.
+  const isLoggedIn = !!user;
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast({
+    toast({
         title: "Logged Out",
         description: "You have been successfully logged out.",
-      });
-      router.push('/login');
-    } catch (error) {
-      console.error("Error signing out: ", error);
-      toast({
-        variant: "destructive",
-        title: "Logout Failed",
-        description: "An error occurred while logging out. Please try again.",
-      });
-    }
+    });
+    // In a real app, you'd redirect or update state.
+    // For mock, we'll just show the toast.
   };
   
-  // While loading authentication state, show a simplified shell or a loading indicator.
-  // This prevents a "flash" of the logged-in or logged-out UI.
-  if (isUserLoading && !publicPages.includes(pathname)) {
-    return (
-      <div className="flex min-h-screen w-full flex-col">
-        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 z-30">
-          <Skeleton className="h-8 w-36" />
-          <div className="flex-1 flex justify-end">
-            <Skeleton className="h-9 w-9 rounded-full" />
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col p-4 md:p-8">
-            <Skeleton className="h-screen w-full"/>
-        </main>
-      </div>
-    );
-  }
-
-  // If the user is unauthenticated and on a public page, don't render the AppShell.
-  if (!user && publicPages.includes(pathname)) {
-    return <>{children}</>;
-  }
-
-
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 z-30">
@@ -135,12 +85,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Logo className="h-8 w-8 text-primary" />
                 <span className="sr-only">TempleConnect</span>
               </Link>
-              {user && navItems.map((item) => (
+              {isLoggedIn && navItems.map((item) => (
                  <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className={`transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : 'text-muted-foreground'}`}>
                     {item.label}
                  </Link>
               ))}
-              {user && <Link href="/register-temple" className={`transition-colors hover:text-primary ${pathname === '/register-temple' ? 'text-primary' : 'text-muted-foreground'}`} onClick={() => setIsMobileMenuOpen(false)}>
+              {isLoggedIn && <Link href="/register-temple" className={`transition-colors hover:text-primary ${pathname === '/register-temple' ? 'text-primary' : 'text-muted-foreground'}`} onClick={() => setIsMobileMenuOpen(false)}>
                 Register Temple
               </Link>}
             </nav>
@@ -148,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </Sheet>
 
         <div className="w-full flex-1 flex justify-end items-center gap-4">
-            {user ? (
+            {isLoggedIn ? (
                 <>
                 <Button variant="outline" asChild className="hidden sm:flex">
                     <Link href="/register-temple">
@@ -189,15 +139,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </DropdownMenu>
                 </>
             ) : (
-                <div className="flex items-center gap-2">
-                     <Button asChild variant="ghost">
-                        <Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Log In</Link>
-
-                    </Button>
-                    <Button asChild>
-                        <Link href="/signup"><UserPlus className="mr-2 h-4 w-4"/>Sign Up</Link>
-                    </Button>
-                </div>
+                // This part is now less relevant with mock data but kept for structure
+                <p>Please log in</p>
             )}
         </div>
       </header>

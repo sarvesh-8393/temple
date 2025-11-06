@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -13,28 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import { HeartHandshake } from "lucide-react";
 import { DiyaIcon } from "@/components/icons";
-
-const temple1 = PlaceHolderImages.find((img) => img.id === "temple-south");
-const temple2 = PlaceHolderImages.find((img) => img.id === "temple-north");
-
-const temples = [
-  {
-    id: "t1",
-    name: "Sri Venkateswara Temple",
-    location: "Tirupati, Andhra Pradesh",
-    image: temple1,
-  },
-  {
-    id: "t2",
-    name: "Kashi Vishwanath Temple",
-    location: "Varanasi, Uttar Pradesh",
-    image: temple2,
-  },
-];
+import { temples } from "@/lib/db";
 
 const presetAmounts = [51, 101, 251, 501, 1001];
 
@@ -90,7 +73,7 @@ export default function DonationsPage() {
               onValueChange={setSelectedTemple}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
-              {temples.map((temple) => (
+              {temples.slice(0, 2).map((temple) => (
                 <Label
                   key={temple.id}
                   htmlFor={temple.id}

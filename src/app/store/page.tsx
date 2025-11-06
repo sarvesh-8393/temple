@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -21,49 +22,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Star } from "lucide-react";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
+import { type Product, products } from "@/lib/db";
 
-const products = [
-  {
-    id: "s1",
-    name: "Tirupati Laddu Prasad",
-    description: "Authentic, sacred laddu from the famous Tirupati temple, made with pure ghee and nuts.",
-    price: 15,
-    image: PlaceHolderImages.find((img) => img.id === "product-prasad"),
-    rating: 4.9,
-    reviews: 1200,
-  },
-  {
-    id: "s2",
-    name: "Panchamrita",
-    description: "A holy mixture of five nectars: milk, yogurt, honey, ghee, and sugar.",
-    price: 25,
-    image: PlaceHolderImages.find((img) => img.id === "product-incense"),
-    rating: 4.8,
-    reviews: 450,
-  },
-  {
-    id: "s3",
-    name: "Brass Diya Set",
-    description: "A set of two beautifully handcrafted brass oil lamps for your home altar.",
-    price: 45,
-    image: PlaceHolderImages.find((img) => img.id === "product-diya"),
-    rating: 4.7,
-    reviews: 310,
-  },
-  {
-    id: "s4",
-    name: "Marble Krishna Statue",
-    description: "A 6-inch exquisite marble murti of Lord Krishna, perfect for worship and decor.",
-    price: 120,
-    image: PlaceHolderImages.find((img) => img.id === "product-murti"),
-    rating: 4.9,
-    reviews: 150,
-  },
-];
-
-type Product = (typeof products)[0];
 
 export default function StorePage() {
   const { toast } = useToast();

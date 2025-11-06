@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -16,14 +17,12 @@ import {
 import { CheckCircle, Star } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase';
+import { user } from '@/lib/db';
 
-const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar-1');
 const premiumBg = PlaceHolderImages.find((img) => img.id === 'premium-plan');
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const { user } = useUser();
 
   const handleUpgrade = () => {
     toast({
@@ -46,8 +45,7 @@ export default function ProfilePage() {
         <div className="mb-8 flex flex-col items-start gap-8 sm:flex-row">
           <Avatar className="h-24 w-24 border-4 border-primary">
             <AvatarImage
-              src={user?.photoURL || userAvatar?.imageUrl}
-              data-ai-hint={userAvatar?.imageHint}
+              src={user?.photoURL}
             />
             <AvatarFallback>
               {user?.displayName
@@ -72,8 +70,7 @@ export default function ProfilePage() {
               {user?.email || 'devotee.user@example.com'}
             </p>
             <p className="mt-4">
-              A passionate devotee dedicated to spiritual growth and supporting
-              temple communities.
+              {user.bio}
             </p>
           </div>
         </div>
