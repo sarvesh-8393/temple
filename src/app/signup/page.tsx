@@ -21,18 +21,18 @@ import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Logo } from '@/components/logo';
 
-const formSchema = z.object({
-  email: z.string().email('Invalid email address.'),
-  password: z
-    .string()
-    .min(6, 'Password must be at least 6 characters long.'),
-  confirmPassword: z.string(),
-})
-.refine((data) => data.password === data.confirmPassword, {
+const formSchema = z
+  .object({
+    email: z.string().email('Invalid email address.'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters long.'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
-});
-
+  });
 
 export default function SignUpPage() {
   const { toast } = useToast();
@@ -61,7 +61,10 @@ export default function SignUpPage() {
       toast({
         variant: 'destructive',
         title: 'Sign Up Failed',
-        description: error.code === 'auth/email-already-in-use' ? 'This email is already registered.' : 'An unexpected error occurred. Please try again.',
+        description:
+          error.code === 'auth/email-already-in-use'
+            ? 'This email is already registered.'
+            : 'An unexpected error occurred. Please try again.',
       });
     }
   }
@@ -69,14 +72,12 @@ export default function SignUpPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-         <div className="mb-8 flex flex-col items-center">
+        <div className="mb-8 flex flex-col items-center">
           <Logo className="h-12 w-12 text-primary" />
           <h1 className="mt-4 text-3xl font-headline font-bold">
             Create an Account
           </h1>
-          <p className="text-muted-foreground">
-            Join TempleConnect today.
-          </p>
+          <p className="text-muted-foreground">Join TempleConnect today.</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -110,7 +111,7 @@ export default function SignUpPage() {
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="confirmPassword"
               render={({ field }) => (
@@ -123,14 +124,23 @@ export default function SignUpPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting
+                ? 'Creating Account...'
+                : 'Create Account'}
             </Button>
           </form>
         </Form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-primary hover:underline">
+          <Link
+            href="/login"
+            className="font-semibold text-primary hover:underline"
+          >
             Sign In
           </Link>
         </p>
