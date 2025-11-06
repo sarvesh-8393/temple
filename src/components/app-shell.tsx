@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -164,13 +165,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                         </Avatar>
-                        <div className="text-right hidden sm:block">
-                        <p className="font-semibold text-sm">{user.displayName || user.email}</p>
-                        </div>
                     </div>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                         <Link href="/profile">
