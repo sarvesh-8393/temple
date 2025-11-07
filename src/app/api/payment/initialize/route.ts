@@ -14,9 +14,9 @@ export async function POST(request: Request) {
   try {
     await connectToDatabase();
     const body = await request.json();
-    const { amount, userId, type } = body;
+    const { amount, currency, receipt } = body;
 
-    if (!amount || !userId || !type) {
+    if (!amount) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -25,16 +25,20 @@ export async function POST(request: Request) {
 
     // Create order
     const order = await razorpay.orders.create({
-      amount: amount * 100, // amount in paise
-      currency: "INR",
-      receipt: `rcpt_${Date.now()}`,
+      amount: amount, // amount already in paise from frontend
+      currency: currency || "INR",
+      receipt: receipt || `rcpt_${Date.now()}`,
     });
 
-    return NextResponse.json({ orderId: order.id }, { status: 200 });
+    return NextResponse.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency
+    }, { status: 200 });
   } catch (error) {
     console.error("Failed to initialize payment:", error);
     return NextResponse.json(
-      { message: "Failed to initialize payment" },
+      { error: "Failed to initialize payment" },
       { status: 500 }
     );
   }

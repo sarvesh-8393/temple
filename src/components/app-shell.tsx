@@ -3,13 +3,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Building,
   LogOut,
   Settings,
   User,
   Menu,
+  CreditCard,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -33,12 +34,13 @@ import { useAuth } from "@/contexts/auth-context";
 const navItems = [
   { href: "/", label: "Dashboard" },
   { href: "/poojas", label: "Poojas" },
-  { href: "/store", label: "Store" },
+  // { href: "/store", label: "Store" },
   { href: "/donations", label: "Donations" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
@@ -56,6 +58,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         title: "Logged Out",
         description: "You have been successfully logged out.",
     });
+    router.push('/login');
   };
   
   // Hide shell on login/signup pages
@@ -110,6 +113,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="w-full flex-1 flex justify-end items-center gap-4">
             {isLoggedIn ? (
                 <>
+                <Button variant="outline" asChild className="hidden sm:flex">
+                    <Link href="/pay">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Pay Now
+                    </Link>
+                </Button>
                 <Button variant="outline" asChild className="hidden sm:flex">
                     <Link href="/register-temple">
                     <Building className="mr-2 h-4 w-4" />

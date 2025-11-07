@@ -3,10 +3,10 @@ import { loadRazorpay } from './utils/razorpay';
 export interface PaymentDetails {
   amount: number;
   templeName: string;
-  type: 'Pooja' | 'Donation';
+  type: 'Pooja' | 'Donation' | 'Premium Subscription';
   userId: string;
   poojaId?: string;
-  templeId: string;
+  templeId?: string;
   name: string;
   email: string;
   contact?: string;

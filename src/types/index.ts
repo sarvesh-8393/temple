@@ -2,6 +2,10 @@ export interface Temple {
   id: string;
   name: string;
   location: string;
+  address?: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
   description?: string;
   image?: {
     imageUrl: string;

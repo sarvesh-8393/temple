@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/temple';
 
@@ -24,6 +24,10 @@ export async function connectToDatabase() {
 const templeSchema = new mongoose.Schema({
   name: { type: String, required: true },
   location: { type: String, required: true },
+  address: { type: String },
+  placeId: { type: String },
+  lat: { type: Number },
+  lng: { type: Number },
   description: String,
   image: {
     imageUrl: String,
@@ -46,7 +50,7 @@ const templeSchema = new mongoose.Schema({
     email: String,
     website: String
   },
-  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });
 
 const userSchema = new mongoose.Schema({

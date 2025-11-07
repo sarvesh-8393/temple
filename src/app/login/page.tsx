@@ -88,7 +88,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" defaultValue="password" required />
+                <Input id="password" name="password" type="password" defaultValue="temple123" required />
             </div>
           <Button
             type="submit"

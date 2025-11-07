@@ -19,6 +19,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building, PlusCircle, Trash2, IndianRupee } from "lucide-react";
+import { useEffect, useRef } from "react";
+
+// Declare global window interface for Google Maps
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
 const poojaSchema = z.object({
   name: z.string().min(1, "Pooja name is required."),
@@ -28,10 +36,13 @@ const poojaSchema = z.object({
 
 const formSchema = z.object({
   templeName: z.string().min(2, "Temple name must be at least 2 characters."),
-  address: z.string().min(10, "Address must be at least 10 characters."),
-  city: z.string().min(2, "City is required."),
-  state: z.string().min(2, "State is required."),
-  zipCode: z.string().regex(/^\d{5,6}$/, "Must be a valid zip code."),
+  address: z.string().min(1, "Address is required."),
+  placeId: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
   description: z.string().min(20, "Description must be at least 20 characters.").max(500),
   contactEmail: z.string().email("Invalid email address."),
   imageUrl: z.string()
@@ -45,7 +56,8 @@ const formSchema = z.object({
 
 export default function RegisterTemplePage() {
   const { toast } = useToast();
-  
+  const addressInputRef = useRef<HTMLInputElement>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,12 +79,60 @@ export default function RegisterTemplePage() {
     name: "poojas",
   });
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && addressInputRef.current) {
+      // Check if Google Maps API is loaded
+      if (!window.google || !window.google.maps || !window.google.maps.places) {
+        console.warn('Google Maps Places API not loaded. Please check your API key.');
+        return;
+      }
+
+      const autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+        types: ['address'],
+        componentRestrictions: { country: 'in' },
+      });
+
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+          form.setValue('address', place.formatted_address || '');
+          form.setValue('placeId', place.place_id || '');
+          form.setValue('lat', place.geometry.location?.lat() || 0);
+          form.setValue('lng', place.geometry.location?.lng() || 0);
+
+          // Extract address components
+          let city = '', state = '', zipCode = '';
+          place.address_components?.forEach((component: any) => {
+            const types = component.types;
+            if (types.includes('locality')) {
+              city = component.long_name;
+            } else if (types.includes('administrative_area_level_1')) {
+              state = component.short_name;
+            } else if (types.includes('postal_code')) {
+              zipCode = component.long_name;
+            }
+          });
+
+          form.setValue('city', city);
+          form.setValue('state', state);
+          form.setValue('zipCode', zipCode);
+        }
+      });
+    }
+  }, [form]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('You must be logged in to register a temple');
+        }
+
         const response = await fetch('/api/temples', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(values),
         });
@@ -154,8 +214,15 @@ export default function RegisterTemplePage() {
                         <FormItem>
                         <FormLabel>Street Address</FormLabel>
                         <FormControl>
-                            <Input placeholder="1234 Divine Rd" {...field} />
+                            <Input
+                              placeholder="Start typing your address..."
+                              {...field}
+                              ref={addressInputRef}
+                            />
                         </FormControl>
+                        <FormDescription>
+                          Use Google Places autocomplete to automatically fill in your address details.
+                        </FormDescription>
                         <FormMessage />
                         </FormItem>
                     )}

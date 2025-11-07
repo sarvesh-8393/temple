@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -19,31 +18,47 @@ import {
   Star,
   Search,
   CheckCircle,
+  MapPin,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 // Removed import from '@/lib/db' as requested
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/auth-context";
+import { TempleMap } from "@/components/google-map";
 
 interface Temple {
-  id: string;
+  _id: string;
   name: string;
   location: string;
+  address: string;
+  lat: number;
+  lng: number;
   image?: {
     imageUrl: string;
     imageHint?: string;
   };
+  poojas?: Array<{
+    name: string;
+    price: number;
+  }>;
 }
-
-const heroImage = {
-    imageUrl: "https://images.unsplash.com/photo-1621787084849-ed98731b3071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmRpYW4lMjB0ZW1wbGV8ZW58MHx8fHwxNzYyMzUyMzMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    imageHint: "indian temple"
-};
 
 export default function HomePage() {
   const [allTemples, setAllTemples] = useState<Temple[]>([]);
+  const [nearbyTemples, setNearbyTemples] = useState<Temple[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showMap, setShowMap] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const { user } = useAuth();
+  const isPremium = user?.plan === 'premium';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchTemples = async () => {
@@ -61,6 +76,40 @@ export default function HomePage() {
     fetchTemples();
   }, []);
 
+  // Get user's location and fetch nearby temples
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+
+          // Fetch nearby temples
+          try {
+            const res = await fetch(`/api/temples/nearby?lat=${latitude}&lng=${longitude}&radius=5000`);
+            const data = await res.json();
+            setNearbyTemples(data);
+          } catch (error) {
+            console.error("Failed to fetch nearby temples:", error);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          // Fallback to showing all temples if location fails
+          setNearbyTemples(allTemples);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        }
+      );
+    } else {
+      // Fallback if geolocation not supported
+      setNearbyTemples(allTemples);
+    }
+  }, [allTemples]);
+
   const featuredTemples = allTemples.filter(
     (temple) =>
       temple.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -69,38 +118,13 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 bg-background text-foreground">
-      {/* 1. Hero Section */}
-      <section className="relative h-[60vh] min-h-[400px] w-full flex items-center justify-center text-center text-white bg-black/50">
-        {heroImage && (
-          <Image
-            src={heroImage.imageUrl}
-            alt="Grand temple"
-            fill
-            className="object-cover -z-10 opacity-50"
-            data-ai-hint={heroImage.imageHint}
-            priority
-          />
-        )}
-        <div className="p-4 max-w-3xl">
-          <h1 className="text-4xl md:text-6xl font-headline font-bold drop-shadow-md">
-            A Smarter Way to Connect With Temples
-          </h1>
-          <p className="mt-4 text-lg md:text-xl text-white/90 drop-shadow-sm">
-            Book pujas, make donations, browse temple details — all in one
-            place.
-          </p>
-          <div className="mt-8 flex justify-center gap-4">
-            <Button asChild size="lg" className="font-bold">
-              <Link href="/poojas">Explore Temples</Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary" className="font-bold">
-              <Link href="/profile">Subscribe Now</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Map Section */}
+      <div className="w-full h-[70vh] min-h-[500px]">
+        <TempleMap temples={allTemples} height="100%" />
+      </div>
 
       <main className="container mx-auto px-4 py-12 md:py-20">
+
         {/* 3. Featured Temples Section */}
         <section className="mb-16 md:mb-24">
           <div className="text-center mb-8">
@@ -111,11 +135,11 @@ export default function HomePage() {
               Discover and explore temples from around the world.
             </p>
           </div>
-          
+
           <div className="mb-8 max-w-xl mx-auto">
               <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                       placeholder="Search temples by name or location..."
                       className="pl-10 text-base"
                       value={searchQuery}
@@ -158,7 +182,7 @@ export default function HomePage() {
                         {temple.location}
                     </p>
                     <Button asChild variant="outline" size="sm" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Link href={`/temples/${temple.id}`}>View Details</Link>
+                        <Link href={`/temples/${temple._id}`}>View Details</Link>
                     </Button>
                     </CardContent>
                 </Card>
@@ -166,25 +190,27 @@ export default function HomePage() {
             </div>
           )}
         </section>
-        
+
         {/* 5. Subscription Benefits Section */}
-        <section className="text-center">
-            <h2 className="text-3xl font-headline font-bold mb-4">Unlock Premium Benefits</h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join our premium plan for an enhanced spiritual experience with exclusive features and discounts.
-            </p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 text-left">
-                <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Unlimited puja bookings</Badge>
-                <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Unlimited donations</Badge>
-                <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Zero convenience fees</Badge>
-                <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Full event access</Badge>
-            </div>
-            <Button asChild size="lg" className="font-bold">
-                <Link href="/profile">
-                    View Subscription <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-            </Button>
-        </section>
+        {mounted && !isPremium && (
+            <section className="text-center">
+                <h2 className="text-3xl font-headline font-bold mb-4">Unlock Premium Benefits</h2>
+                <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+                  Join our premium plan for an enhanced spiritual experience with exclusive features and discounts.
+                </p>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 text-left">
+                    <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Unlimited puja bookings</Badge>
+                    <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Unlimited donations</Badge>
+                    <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Zero convenience fees</Badge>
+                    <Badge variant="outline" className="text-base justify-center p-3"><CheckCircle className="text-green-500 mr-2"/> Full event access</Badge>
+                </div>
+                <Button asChild size="lg" className="font-bold">
+                    <Link href="/profile">
+                        View Subscription <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                </Button>
+            </section>
+        )}
       </main>
 
       {/* 6. Footer */}

@@ -35,7 +35,7 @@ export default function ProfilePage() {
   }, []);
 
   const handleUpgrade = () => {
-    router.push('/payment');
+    router.push('/payment?amount=499&templeName=TempleConnect&type=Premium%20Subscription');
   };
 
   return (

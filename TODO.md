@@ -1,19 +1,24 @@
-# TODO for Integrating MongoDB Database
+# TODO List
 
-- [x] Install Mongoose package
-- [x] Add MongoDB URI to .env file
-- [x] Create MongoDB connection in lib/db.ts
-- [x] Create Mongoose models for Pooja, Temple, Product, User, Cart collections
-- [ ] Update API routes (auth, cart, poojas, products, temples) to use MongoDB instead of mock data and Firebase
-  - [ ] Add initial data arrays to db.ts for seeding
-  - [ ] Create seed script to populate MongoDB
-  - [ ] Update auth/login route to use User model
-  - [ ] Update auth/signup route to use User model
-  - [ ] Update cart route to use Cart model
-  - [ ] Update poojas route to use Pooja model
-  - [ ] Update products route to use Product model
-  - [ ] Update temples route to use Temple model
-  - [ ] Update temples/[id] route to use Temple model
-- [ ] Remove Firebase Firestore code entirely (config, providers, hooks, etc.)
-- [ ] Seed the database with initial data from db.ts
-- [ ] Test the app to ensure MongoDB integration works correctly
+## Map Markers Implementation
+- [x] Verify temple markers display on map using lat/lng from database
+- [x] Create nearby temples API route for location-based filtering
+- [ ] Test map markers with sample data
+- [ ] Enhance markers with Google Places API integration (optional)
+
+## Database & API
+- [x] Ensure Temple schema includes lat, lng, placeId fields
+- [x] Seed database with temples having geographical coordinates
+- [x] Implement GET /api/temples endpoint
+- [x] Implement POST /api/temples endpoint for temple registration
+
+## Frontend Components
+- [x] TempleMap component renders markers for temples
+- [x] Home page integrates map with temple markers
+- [ ] Add loading states for map initialization
+- [ ] Add error handling for failed location requests
+
+## User Experience
+- [ ] Implement user location detection and nearby temple suggestions
+- [ ] Add map controls for zoom, pan, and location reset
+- [ ] Optimize marker clustering for dense areas

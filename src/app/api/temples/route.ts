@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase, Temple } from '@/lib/mongodb';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import jwt from 'jsonwebtoken';
 
 export async function GET() {
   try {
@@ -37,29 +38,41 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+        const authHeader = request.headers.get('authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const token = authHeader.substring(7);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+
         const body = await request.json();
-        
+
         // Comprehensive validation
-        if (!body.templeName || !body.description || !body.city || !body.state || !body.creatorId) {
+        if (!body.templeName || !body.description || !body.city || !body.state) {
             return NextResponse.json(
-                { message: "Missing required fields: templeName, description, city, state, and creatorId are required" },
+                { message: "Missing required fields: templeName, description, city, and state are required" },
                 { status: 400 }
             );
         }
-        
+
         await connectToDatabase();
 
         // Construct the location string
-        const location = `${body.address ? body.address + ', ' : ''}${body.city}, ${body.state}${body.zipCode ? ' ' + body.zipCode : ''}`;
-        
+        const location = body.address || `${body.city}, ${body.state}${body.zipCode ? ' ' + body.zipCode : ''}`;
+
         // Handle the image URL, if it's a data URL, use a default image
-        const imageUrl = body.imageUrl?.startsWith('data:') 
-            ? PlaceHolderImages.find(img => img.id === 'temple-north')!.imageUrl 
+        const imageUrl = body.imageUrl?.startsWith('data:')
+            ? PlaceHolderImages.find(img => img.id === 'temple-north')!.imageUrl
             : body.imageUrl || PlaceHolderImages.find(img => img.id === 'temple-north')!.imageUrl;
 
         const newTemple = new Temple({
             name: body.templeName,
             location: location,
+            address: body.address,
+            placeId: body.placeId,
+            lat: body.lat,
+            lng: body.lng,
             description: body.description,
             image: {
                 id: 'new-temple-placeholder',
@@ -77,9 +90,9 @@ export async function POST(request: Request) {
                 date: 'Upon Request',
                 time: 'Flexible'
             })),
-            creator: body.creatorId
+            creator: decoded.userId
         });
-        
+
         await newTemple.save();
         return NextResponse.json(newTemple, { status: 201 });
 

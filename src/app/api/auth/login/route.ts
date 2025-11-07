@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         // Find user by email
         const user = await User.findOne({ email: email.toLowerCase() });
 
-        if (!user) {
+        if (!user || !user.password) {
             return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
         }
 

@@ -33,8 +33,9 @@ function PaymentPageContent() {
   const type = searchParams.get('type') || 'Payment';
 
   const isPremium = user?.plan === 'premium';
-  const platformFee = isPremium ? 0 : 40;
-  const processingFee = isPremium ? 0 : 30;
+  const isPremiumSubscription = type === 'Premium Subscription';
+  const platformFee = (isPremium || isPremiumSubscription) ? 0 : 40;
+  const processingFee = (isPremium || isPremiumSubscription) ? 0 : 30;
   const totalAmount = baseAmount + platformFee + processingFee;
   
   const handlePayment = async () => {
@@ -61,7 +62,7 @@ function PaymentPageContent() {
       const paymentDetails: any = {
         amount: totalAmount,
         templeName,
-        type: type as 'Pooja' | 'Donation',
+        type: type as 'Pooja' | 'Donation' | 'Premium Subscription',
         userId: user._id,
         name: user.displayName,
         email: user.email,
@@ -109,7 +110,7 @@ function PaymentPageContent() {
                     <span>Base Amount:</span>
                     <span>₹{baseAmount}</span>
                 </div>
-                {!isPremium && (
+                {!isPremium && !isPremiumSubscription && (
                     <>
                         <div className="flex justify-between items-center text-sm">
                             <span>Platform Fee:</span>
@@ -127,7 +128,7 @@ function PaymentPageContent() {
                     <span className="font-bold text-2xl text-primary">₹{totalAmount}</span>
                 </div>
             </div>
-            {!isPremium && (
+            {!isPremium && !isPremiumSubscription && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                     <p className="text-sm text-yellow-800">
                         <strong>Upgrade to Premium</strong> to remove platform and processing fees!

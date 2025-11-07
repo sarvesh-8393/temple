@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -25,6 +24,7 @@ interface Image {
 
 interface Pooja {
   id: string;
+  _id?: string;
   name: string;
   description: string;
   price: number;
@@ -77,7 +77,7 @@ export default function PoojasPage() {
   };
 
   const filteredTemples = temples.map(temple => {
-      const filteredPoojas = temple.poojas.filter(pooja => 
+      const filteredPoojas = temple.poojas.filter(pooja =>
           pooja.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           pooja.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (pooja.tags && pooja.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
@@ -95,11 +95,11 @@ export default function PoojasPage() {
                 <p className="text-muted-foreground">Book a pooja to seek divine blessings from our temples.</p>
                 </div>
             </div>
-            
+
             <div className="mb-8">
               <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                       placeholder="Search for a pooja by name, description, or tag..."
                       className="pl-10 text-base"
                       value={searchQuery}
@@ -111,7 +111,7 @@ export default function PoojasPage() {
             <div className="space-y-12">
                 {isLoading ? (
                     Array.from({length: 2}).map((_, i) => (
-                        <section key={i}>
+                        <section key={`skeleton-section-${i}`}>
                             <div className="flex items-center gap-4 mb-6">
                                 <Skeleton className="w-16 h-16 rounded-full" />
                                 <div className="space-y-2">
@@ -121,7 +121,7 @@ export default function PoojasPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {Array.from({length: 3}).map((_, j) => (
-                                    <Card key={j}>
+                                    <Card key={`skeleton-card-${i}-${j}`}>
                                         <Skeleton className="h-48 w-full" />
                                         <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
                                         <CardContent><Skeleton className="h-12 w-full" /></CardContent>
@@ -143,7 +143,7 @@ export default function PoojasPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {temple.poojas.map((pooja, idx) => (
-                                <Card key={pooja.id || pooja._id || idx} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                                <Card key={pooja.id || pooja._id || `pooja-${temple.id}-${idx}`} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                                 {pooja.image && (
                                     <div className="relative h-48 w-full">
                                     <Image
@@ -159,7 +159,7 @@ export default function PoojasPage() {
                                     <CardTitle className="font-headline text-xl">{pooja.name}</CardTitle>
                                     <div className="flex flex-wrap gap-2 pt-2">
                                     {pooja.tags.map((tag, tagIdx) => (
-                                        <Badge key={tag + '-' + tagIdx} variant="secondary">{tag}</Badge>
+                                        <Badge key={`tag-${temple.id}-${idx}-${tagIdx}`} variant="secondary">{tag}</Badge>
                                     ))}
                                     </div>
                                 </CardHeader>
