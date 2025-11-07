@@ -10,6 +10,17 @@ interface User {
     plan: 'free' | 'premium';
     role: 'user' | 'admin';
     bio: string;
+    bookingHistory?: Array<{
+        type: string;
+        amount: number;
+        templeName: string;
+        poojaId?: string;
+        templeId?: string;
+        paymentId: string;
+        orderId: string;
+        date: string;
+        status: string;
+    }>;
 }
 
 interface AuthContextType {

@@ -54,6 +54,10 @@ export async function POST(request: Request) {
       updateData.$set = { plan: 'premium' };
     }
 
+    // Grant recipe creation permission for any successful payment
+    updateData.$set = updateData.$set || {};
+    updateData.$set.canCreateRecipes = true;
+
     await User.findByIdAndUpdate(userId, updateData);
 
     return NextResponse.json({

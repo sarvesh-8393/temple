@@ -23,6 +23,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Ensure minimum amount of ₹10 (1000 paise)
+    if (amount < 1000) {
+      return NextResponse.json(
+        { message: "Minimum payment amount is ₹10" },
+        { status: 400 }
+      );
+    }
+
     // Create order
     const order = await razorpay.orders.create({
       amount: amount, // amount already in paise from frontend

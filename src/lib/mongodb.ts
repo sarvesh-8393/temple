@@ -90,8 +90,26 @@ const cartSchema = new mongoose.Schema({
   items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
 });
 
+const recipeSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  ingredients: [{ type: String, required: true }],
+  instructions: [{ type: String, required: true }],
+  prepTime: { type: Number, required: true }, // in minutes
+  cookTime: { type: Number, required: true }, // in minutes
+  servings: { type: Number, required: true },
+  category: { type: String, required: true },
+  image: {
+    imageUrl: String,
+    imageHint: String
+  },
+  tags: [String],
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+}, { timestamps: true });
+
 // Define and export models
 export const Temple = mongoose.models.Temple || mongoose.model('Temple', templeSchema);
 export const User = mongoose.models.User || mongoose.model('User', userSchema);
 export const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 export const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
+export const Recipe = mongoose.models.Recipe || mongoose.model('Recipe', recipeSchema);

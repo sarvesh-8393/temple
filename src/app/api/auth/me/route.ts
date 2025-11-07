@@ -35,6 +35,7 @@ export async function GET(request: Request) {
         plan: user.plan,
         role: user.role,
         bio: user.bio,
+        bookingHistory: user.bookingHistory,
       }
     }, { status: 200 });
 

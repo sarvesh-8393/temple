@@ -28,6 +28,16 @@ export default function PayPage() {
       return;
     }
 
+    const numAmount = parseFloat(amount);
+    if (numAmount < 10) {
+      toast({
+        title: "Error",
+        description: "Minimum amount is ₹10.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     try {
       // Create Razorpay order
@@ -116,6 +126,11 @@ export default function PayPage() {
           const amountMatch = qrData.match(/am=([0-9]+)/);
           if (amountMatch) {
             paymentAmount = parseInt(amountMatch[1]);
+          }
+
+          // Ensure minimum amount for QR payments
+          if (paymentAmount < 10) {
+            paymentAmount = 10;
           }
 
           // Extract merchant name if available

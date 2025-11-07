@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { initializeRazorpayPayment } from '@/lib/razorpay';
 import { useAuth } from '@/contexts/auth-context';
@@ -27,17 +26,28 @@ function PaymentPageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, refreshUser } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [latestBooking, setLatestBooking] = useState<any>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const baseAmount = parseInt(searchParams.get('amount') || '0');
   const templeName = searchParams.get('templeName') || 'the temple';
   const type = searchParams.get('type') || 'Payment';
 
-  const isPremium = user?.plan === 'premium';
+  const isPremium = mounted && user?.plan === 'premium';
   const isPremiumSubscription = type === 'Premium Subscription';
   const platformFee = (isPremium || isPremiumSubscription) ? 0 : 40;
   const processingFee = (isPremium || isPremiumSubscription) ? 0 : 30;
   const totalAmount = baseAmount + platformFee + processingFee;
-  
+
+  // Ensure minimum total amount of ₹10
+  const finalAmount = Math.max(totalAmount, 10);
+
   const handlePayment = async () => {
     try {
       if (!user) {
@@ -49,7 +59,7 @@ function PaymentPageContent() {
         router.push('/login');
         return;
       }
-      
+
       if (!totalAmount || !templeName || !type || !user) {
         toast({
           title: "Error",
@@ -60,7 +70,7 @@ function PaymentPageContent() {
       }
 
       const paymentDetails: any = {
-        amount: totalAmount,
+        amount: finalAmount,
         templeName,
         type: type as 'Pooja' | 'Donation' | 'Premium Subscription',
         userId: user._id,
@@ -76,13 +86,18 @@ function PaymentPageContent() {
 
       toast({
         title: "Payment Successful!",
-        description: "Your booking has been confirmed.",
+        description: "Your booking has been confirmed. Redirecting to profile...",
       });
 
-      // Refresh user data to get updated plan
+      // Refresh user data to get updated plan and booking history
       await refreshUser();
 
-      router.push('/profile'); // Redirect to profile to see booking history
+      // Set redirecting state and redirect after a short delay
+      setRedirecting(true);
+      setTimeout(() => {
+        router.push('/profile?showReceipt=true');
+      }, 2000); // 2 second delay to show the success message
+
     } catch (error: any) {
       toast({
         title: "Payment Failed",
@@ -148,9 +163,16 @@ function PaymentPageContent() {
             </p>
         </CardContent>
         <CardFooter>
-          <Button size="lg" className="w-full text-lg font-bold" onClick={handlePayment}>
-            <Zap className="mr-2 h-5 w-5" /> Pay with Razorpay
-          </Button>
+          {redirecting ? (
+            <div className="w-full text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Redirecting to profile...</p>
+            </div>
+          ) : (
+            <Button size="lg" className="w-full text-lg font-bold" onClick={handlePayment}>
+              <Zap className="mr-2 h-5 w-5" /> Pay with Razorpay
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </main>

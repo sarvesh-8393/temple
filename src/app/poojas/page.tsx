@@ -143,7 +143,7 @@ export default function PoojasPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {temple.poojas.map((pooja, idx) => (
-                                <Card key={pooja.id || pooja._id || `pooja-${temple.id}-${idx}`} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                                <Card key={pooja.id || pooja._id || `pooja-${temple.id}-${idx}-${pooja.name}`} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                                 {pooja.image && (
                                     <div className="relative h-48 w-full">
                                     <Image
@@ -159,7 +159,7 @@ export default function PoojasPage() {
                                     <CardTitle className="font-headline text-xl">{pooja.name}</CardTitle>
                                     <div className="flex flex-wrap gap-2 pt-2">
                                     {pooja.tags.map((tag, tagIdx) => (
-                                        <Badge key={`tag-${temple.id}-${idx}-${tagIdx}`} variant="secondary">{tag}</Badge>
+                                        <Badge key={`tag-${temple.id}-${pooja.id || pooja._id || idx}-${tagIdx}-${tag}`} variant="secondary">{tag}</Badge>
                                     ))}
                                     </div>
                                 </CardHeader>
