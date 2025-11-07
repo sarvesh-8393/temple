@@ -40,9 +40,9 @@ export async function POST(request: Request) {
         const body = await request.json();
         
         // Comprehensive validation
-        if (!body.templeName || !body.description || !body.city || !body.state) {
+        if (!body.templeName || !body.description || !body.city || !body.state || !body.creatorId) {
             return NextResponse.json(
-                { message: "Missing required fields: templeName, description, city, and state are required" }, 
+                { message: "Missing required fields: templeName, description, city, state, and creatorId are required" },
                 { status: 400 }
             );
         }
@@ -76,7 +76,8 @@ export async function POST(request: Request) {
                 tags: [],
                 date: 'Upon Request',
                 time: 'Flexible'
-            }))
+            })),
+            creator: body.creatorId
         });
         
         await newTemple.save();

@@ -45,7 +45,8 @@ const templeSchema = new mongoose.Schema({
     phone: String,
     email: String,
     website: String
-  }
+  },
+  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
 const userSchema = new mongoose.Schema({
@@ -53,6 +54,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   plan: { type: String, enum: ['free', 'premium'], default: 'free' },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   bio: String,
   bookingHistory: [{
     type: { type: String, enum: ['Pooja', 'Donation'], required: true },

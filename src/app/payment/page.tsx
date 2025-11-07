@@ -26,11 +26,16 @@ function PaymentPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
-  const amount = searchParams.get('amount') || '0';
+  const baseAmount = parseInt(searchParams.get('amount') || '0');
   const templeName = searchParams.get('templeName') || 'the temple';
   const type = searchParams.get('type') || 'Payment';
+
+  const isPremium = user?.plan === 'premium';
+  const platformFee = isPremium ? 0 : 40;
+  const processingFee = isPremium ? 0 : 30;
+  const totalAmount = baseAmount + platformFee + processingFee;
   
   const handlePayment = async () => {
     try {
@@ -44,7 +49,7 @@ function PaymentPageContent() {
         return;
       }
       
-      if (!amount || !templeName || !type || !user) {
+      if (!totalAmount || !templeName || !type || !user) {
         toast({
           title: "Error",
           description: "Missing required payment details",
@@ -54,7 +59,7 @@ function PaymentPageContent() {
       }
 
       const paymentDetails: any = {
-        amount: Number(amount),
+        amount: totalAmount,
         templeName,
         type: type as 'Pooja' | 'Donation',
         userId: user._id,
@@ -72,7 +77,10 @@ function PaymentPageContent() {
         title: "Payment Successful!",
         description: "Your booking has been confirmed.",
       });
-      
+
+      // Refresh user data to get updated plan
+      await refreshUser();
+
       router.push('/profile'); // Redirect to profile to see booking history
     } catch (error: any) {
       toast({
@@ -92,14 +100,48 @@ function PaymentPageContent() {
             Confirm Your Payment
           </CardTitle>
           <CardDescription>
-            You are about to make a {type.toLowerCase()} of ₹{amount} to {templeName}.
+            You are about to make a {type.toLowerCase()} of ₹{baseAmount} to {templeName}.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-            <div className="flex justify-between items-center text-lg p-4 border rounded-lg">
-                <span>Total Amount (₹):</span>
-                <span className="font-bold text-2xl text-primary">₹{amount}</span>
+            <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                    <span>Base Amount:</span>
+                    <span>₹{baseAmount}</span>
+                </div>
+                {!isPremium && (
+                    <>
+                        <div className="flex justify-between items-center text-sm">
+                            <span>Platform Fee:</span>
+                            <span>₹{platformFee}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span>Processing Fee:</span>
+                            <span>₹{processingFee}</span>
+                        </div>
+                    </>
+                )}
+                <hr className="my-2" />
+                <div className="flex justify-between items-center text-lg p-4 border rounded-lg">
+                    <span>Total Amount (₹):</span>
+                    <span className="font-bold text-2xl text-primary">₹{totalAmount}</span>
+                </div>
             </div>
+            {!isPremium && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800">
+                        <strong>Upgrade to Premium</strong> to remove platform and processing fees!
+                    </p>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => router.push('/payment?amount=499&templeName=TempleConnect&type=Premium%20Subscription')}
+                    >
+                        Upgrade Now
+                    </Button>
+                </div>
+            )}
             <p className='text-sm text-muted-foreground'>
                 The amount shown is in Indian Rupees (₹).
             </p>

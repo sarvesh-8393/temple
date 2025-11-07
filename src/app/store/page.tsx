@@ -21,16 +21,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, Star, Search } from "lucide-react";
+import { ShoppingBag, Star, Search, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 // Removed import from '@/lib/db' as requested
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@/types";
+import { useAuth } from "@/contexts/auth-context";
 
 
 export default function StorePage() {
   const { toast } = useToast();
+  const { user, refreshUser } = useAuth();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -38,6 +40,16 @@ export default function StorePage() {
   const [isCartLoading, setIsCartLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: '',
+    imageUrl: '',
+    imageHint: ''
+  });
 
   const fetchProducts = async () => {
     try {
@@ -56,8 +68,10 @@ export default function StorePage() {
     try {
         setIsCartLoading(true);
         const res = await fetch('/api/cart');
-        const data = await res.json();
-        setCart(data);
+        const carts = await res.json();
+        // Assuming we take the first cart for now; in a real app, filter by user
+        const userCart = carts.find((cart: any) => cart.userId === user?.id);
+        setCart(userCart?.items || []);
     } catch (error) {
         console.error("Failed to fetch cart:", error);
     } finally {
@@ -66,19 +80,30 @@ export default function StorePage() {
   }
 
   useEffect(() => {
+    setIsClient(true);
     fetchProducts();
     fetchCart();
+    refreshUser(); // Refresh user data to get latest role information
   }, []);
   
   const handleAddToCart = async (product: Product) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add items to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
         const res = await fetch('/api/cart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: product.id })
+            body: JSON.stringify({ productId: product.id, userId: user.id })
         });
         if (!res.ok) throw new Error("Failed to add item to cart");
-        
+
         const updatedCart = await res.json();
         setCart(updatedCart);
 
@@ -140,6 +165,67 @@ export default function StorePage() {
     }
   };
   
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.description || !newProduct.price) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newProduct.name,
+          description: newProduct.description,
+          price: parseFloat(newProduct.price),
+          category: newProduct.category,
+          image: newProduct.imageUrl ? {
+            imageUrl: newProduct.imageUrl,
+            imageHint: newProduct.imageHint
+          } : undefined
+        })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to add product");
+      }
+
+      const addedProduct = await res.json();
+      setAllProducts(prev => [...prev, addedProduct]);
+      setShowAddProduct(false);
+      setNewProduct({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        imageUrl: '',
+        imageHint: ''
+      });
+
+      toast({
+        title: "Product Added",
+        description: `${addedProduct.name} has been added to the store.`,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: (error as Error)?.message || "Could not add product. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const cartTotal = cart.reduce((total, item) => total + item.price, 0);
 
   const filteredProducts = allProducts.filter(product =>
@@ -157,10 +243,18 @@ export default function StorePage() {
             <p className="text-muted-foreground">Purchase prasad and religious items to support our temples.</p>
             </div>
         </div>
-        <Button onClick={handleCheckout}>
+        <div className="flex gap-2">
+          {isClient && user?.role === 'admin' && (
+            <Button onClick={() => setShowAddProduct(true)} variant="outline">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          )}
+          <Button onClick={handleCheckout}>
             <ShoppingBag className="mr-2 h-4 w-4" />
             Cart ({isCartLoading ? '...' : cart.length})
-        </Button>
+          </Button>
+        </div>
       </div>
 
        <div className="mb-8 max-w-xl">
@@ -208,11 +302,6 @@ export default function StorePage() {
               )}
               <CardHeader>
                 <CardTitle className="font-headline text-lg">{product.name}</CardTitle>
-                <div className="flex items-center gap-1 text-sm text-amber-500">
-                  <Star className="w-4 h-4 fill-current" />
-                  <span>{product.rating}</span>
-                  <span className="text-muted-foreground">({product.reviews} reviews)</span>
-                </div>
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="text-muted-foreground text-sm">{product.description}</p>
@@ -263,6 +352,76 @@ export default function StorePage() {
               </Button>
               <Button onClick={handleConfirmPurchase} disabled={isProcessing || cart.length === 0}>
                 {isProcessing ? "Processing..." : `Pay $${cartTotal.toFixed(2)}`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-headline text-2xl">Add New Product</DialogTitle>
+              <DialogDescription>
+                Add a new product to the temple store.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <label className="text-sm font-medium">Product Name *</label>
+                <Input
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter product name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Description *</label>
+                <Input
+                  value={newProduct.description}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter product description"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Price *</label>
+                <Input
+                  type="number"
+                  value={newProduct.price}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                  placeholder="Enter price"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Category</label>
+                <Input
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="Enter category (optional)"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Image URL</label>
+                <Input
+                  value={newProduct.imageUrl}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, imageUrl: e.target.value }))}
+                  placeholder="Enter image URL (optional)"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Image Hint</label>
+                <Input
+                  value={newProduct.imageHint}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, imageHint: e.target.value }))}
+                  placeholder="Enter image hint (optional)"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddProduct(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddProduct}>
+                Add Product
               </Button>
             </DialogFooter>
           </DialogContent>

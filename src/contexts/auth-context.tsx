@@ -7,7 +7,8 @@ interface User {
     displayName: string;
     email: string;
     photoURL?: string;
-    plan: 'Free' | 'Premium';
+    plan: 'free' | 'premium';
+    role: 'user' | 'admin';
     bio: string;
 }
 
@@ -15,6 +16,7 @@ interface AuthContextType {
     user: User | null;
     setUser: (user: User | null) => void;
     logout: () => void;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,8 +63,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('token');
     };
 
+    const refreshUser = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch('/api/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                setUser(userData.user);
+            } else {
+                // If refresh fails, clear user data
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            }
+        } catch (error) {
+            console.error('Failed to refresh user:', error);
+            // If refresh fails, clear user data
+            setUser(null);
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, setUser, logout }}>
+        <AuthContext.Provider value={{ user, setUser, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

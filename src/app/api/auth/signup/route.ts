@@ -32,7 +32,7 @@ export async function POST(request: Request) {
             displayName: `${firstName} ${lastName}`,
             email: email.toLowerCase(),
             password: hashedPassword,
-            plan: 'Free',
+            plan: 'free',
             bio: ''
         });
 
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
             displayName: newUser.displayName,
             email: newUser.email,
             plan: newUser.plan,
+            role: newUser.role,
             bio: newUser.bio
         };
 

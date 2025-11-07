@@ -33,8 +33,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Add to user's booking history
-    await User.findByIdAndUpdate(userId, {
+    // Add to user's booking history and update plan if premium subscription
+    const updateData: any = {
       $push: {
         bookingHistory: {
           type,
@@ -48,7 +48,13 @@ export async function POST(request: Request) {
           status: 'completed'
         }
       }
-    });
+    };
+
+    if (type === 'Premium Subscription') {
+      updateData.$set = { plan: 'premium' };
+    }
+
+    await User.findByIdAndUpdate(userId, updateData);
 
     return NextResponse.json({
       message: "Payment verified successfully",
