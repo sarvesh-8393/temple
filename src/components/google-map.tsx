@@ -1,4 +1,7 @@
 "use client";
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
+
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
@@ -316,45 +319,75 @@ export const TempleMap: React.FC<TempleMapProps> = ({ temples, height = "400px" 
     }
   }, []);
 
-  const requestLocation = () => {
-    setIsLoadingLocation(true);
-    setLocationError(null);
+  const requestLocation = async () => {
+  setIsLoadingLocation(true);
+  setLocationError(null);
 
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser');
-      setIsLoadingLocation(false);
-      return;
-    }
+  try {
+    if (Capacitor.isNativePlatform()) {
+      // ✅ Native Android/iOS app
+      const perm = await Geolocation.requestPermissions();
+      if (perm.location === 'denied') {
+        setLocationError('Location access denied. Please enable location permissions.');
+        setIsLoadingLocation(false);
+        return;
+      }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-        setIsLoadingLocation(false);
-      },
-      (error) => {
-        let errorMessage = 'Unable to retrieve your location';
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = 'Location access denied. Please enable location permissions.';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Location information is unavailable.';
-            break;
-          case error.TIMEOUT:
-            errorMessage = 'Location request timed out.';
-            break;
-        }
-        setLocationError(errorMessage);
-        setIsLoadingLocation(false);
-      },
-      {
+      const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000 // 5 minutes
+        maximumAge: 300000,
+      });
+
+      setUserLocation({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      });
+    } else {
+      // ✅ Browser fallback
+      if (!navigator.geolocation) {
+        setLocationError('Geolocation is not supported by this browser');
+        setIsLoadingLocation(false);
+        return;
       }
-    );
-  };
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          let errorMessage = 'Unable to retrieve your location';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access denied. Please enable location permissions.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out.';
+              break;
+          }
+          setLocationError(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000,
+        }
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    setLocationError('An unexpected error occurred while fetching location.');
+  } finally {
+    setIsLoadingLocation(false);
+  }
+};
+
 
   const render = (status: Status) => {
     switch (status) {
