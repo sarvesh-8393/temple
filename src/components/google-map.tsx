@@ -131,6 +131,12 @@ const MapComponent: React.FC<GoogleMapProps> = ({
         position: { lat: temple.lat, lng: temple.lng },
         map: googleMapRef.current!,
         title: temple.name,
+        label: {
+          text: temple.name,
+          fontWeight: 'bold',
+          color: '#000000',
+          fontSize: '12px'
+        },
         icon: {
           url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
             <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -140,7 +146,8 @@ const MapComponent: React.FC<GoogleMapProps> = ({
             </svg>
           `),
           scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 40)
+          anchor: new google.maps.Point(20, 40),
+          labelOrigin: new google.maps.Point(20, -10)
         }
       });
 
