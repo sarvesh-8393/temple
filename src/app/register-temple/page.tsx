@@ -43,7 +43,7 @@ const formSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   zipCode: z.string().optional(),
-  description: z.string().min(20, "Description must be at least 20 characters.").max(500),
+  description: z.string().min(20, "Description must be at least 20 characters."),
   contactEmail: z.string().email("Invalid email address."),
   imageUrl: z.string()
     .min(1, "Temple photo URL is required")

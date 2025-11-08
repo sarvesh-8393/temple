@@ -1,24 +1,22 @@
 # TODO List
 
-## Map Markers Implementation
-- [x] Verify temple markers display on map using lat/lng from database
-- [x] Create nearby temples API route for location-based filtering
-- [ ] Test map markers with sample data
-- [ ] Enhance markers with Google Places API integration (optional)
+## Cleanup Tasks
+- [x] Remove Firebase-related files (apphosting.yaml, firestore.rules, docs/backend.json)
+- [x] Remove AI/Genkit related files (src/ai/ directory)
+- [x] Update package.json to remove Firebase and Genkit dependencies
+- [x] Update .gitignore to remove Firebase-related entries
+- [x] Update README.md to reflect current MongoDB stack
+- [x] Create .env.example with required environment variables
 
-## Database & API
-- [x] Ensure Temple schema includes lat, lng, placeId fields
-- [x] Seed database with temples having geographical coordinates
-- [x] Implement GET /api/temples endpoint
-- [x] Implement POST /api/temples endpoint for temple registration
-
-## Frontend Components
-- [x] TempleMap component renders markers for temples
-- [x] Home page integrates map with temple markers
-- [ ] Add loading states for map initialization
-- [ ] Add error handling for failed location requests
-
-## User Experience
-- [ ] Implement user location detection and nearby temple suggestions
-- [ ] Add map controls for zoom, pan, and location reset
-- [ ] Optimize marker clustering for dense areas
+## Production Readiness
+- [x] Set up environment variables (.env.example)
+- [x] Configure ESLint properly
+- [ ] Add comprehensive error handling
+- [x] Enhance security headers and middleware
+- [ ] Add input validation and sanitization
+- [ ] Implement rate limiting
+- [ ] Add logging and monitoring
+- [ ] Set up testing framework
+- [x] Optimize build and performance (Vercel ready)
+- [x] Add deployment configuration (Vercel ready)
+- [x] Create proper documentation

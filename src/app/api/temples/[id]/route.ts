@@ -13,8 +13,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     // Map _id to id and ensure image URLs are valid (fallback to placeholder)
     const { PlaceHolderImages } = await import('@/lib/placeholder-images');
-    const templeId = temple._id?.toString() || temple.id;
-    const imageUrl = temple.image?.imageUrl;
+    const templeId = (temple as any)._id?.toString() || (temple as any).id;
+    const imageUrl = (temple as any).image?.imageUrl;
     const validImage = imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))
       ? imageUrl
       : PlaceHolderImages.find(img => img.id === 'temple-north')!.imageUrl;
@@ -23,7 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       ...temple,
       id: templeId,
       image: {
-        ...(temple.image || {}),
+        ...((temple as any).image || {}),
         imageUrl: validImage,
       }
     };

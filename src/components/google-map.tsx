@@ -42,6 +42,7 @@ const MapComponent: React.FC<GoogleMapProps> = ({
   const markersRef = useRef<google.maps.Marker[]>([]);
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const isInfoWindowFromClick = useRef(false);
 
   useEffect(() => {
     if (!mapRef.current || !window.google) return;
@@ -68,6 +69,11 @@ const MapComponent: React.FC<GoogleMapProps> = ({
 
     // Create info window
     infoWindowRef.current = new google.maps.InfoWindow();
+
+    // Add close listener to reset click flag
+    infoWindowRef.current.addListener('closeclick', () => {
+      isInfoWindowFromClick.current = false;
+    });
 
     return () => {
       // Cleanup markers
@@ -138,22 +144,79 @@ const MapComponent: React.FC<GoogleMapProps> = ({
         }
       });
 
-      // Add click listener
+      // Add click listener to open info window persistently
       marker.addListener('click', () => {
         if (infoWindowRef.current) {
+          isInfoWindowFromClick.current = true;
           const content = `
-            <div class="p-3 max-w-sm">
-              <h3 class="font-bold text-lg mb-2">${temple.name}</h3>
+            <div class="p-3 max-w-sm info-window-content" data-marker-id="${temple._id}">
+              <h3 class="font-bold text-lg mb-1">${temple.name}</h3>
               <p class="text-sm text-gray-600 mb-2">${temple.location}</p>
-              ${temple.image ? `<img src="${temple.image.imageUrl}" alt="${temple.name}" class="w-full h-24 object-cover rounded mb-2" />` : ''}
+              ${temple.image ? `<img src="${temple.image.imageUrl}" alt="${temple.name}" class="w-full h-32 object-cover rounded mb-2" />` : ''}
               <div class="flex gap-2">
                 <a href="/temples/${temple._id}" class="inline-block bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">View Details</a>
-                <a href="/poojas?temple=${temple._id}" class="inline-block bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">Book Pooja</a>
+                <a href="/poojas?search=${encodeURIComponent(temple.name)}" class="inline-block bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">Book Pooja</a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${temple.lat},${temple.lng}" target="_blank" class="inline-block bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">Directions</a>
               </div>
             </div>
           `;
           infoWindowRef.current.setContent(content);
           infoWindowRef.current.open(googleMapRef.current!, marker);
+
+          // Add listeners to the info window content after it's opened
+          setTimeout(() => {
+            const infoWindowContent = document.querySelector(`[data-marker-id="${temple._id}"]`);
+            if (infoWindowContent) {
+              infoWindowContent.addEventListener('mouseenter', () => {
+                // Prevent closing when hovering over info window
+                if (infoWindowRef.current) {
+                  clearTimeout((infoWindowRef.current as any)._closeTimeout);
+                }
+              });
+              infoWindowContent.addEventListener('mouseleave', () => {
+                // Close after leaving info window if it was opened by hover
+                if (infoWindowRef.current && !isInfoWindowFromClick.current) {
+                  (infoWindowRef.current as any)._closeTimeout = setTimeout(() => {
+                    if (infoWindowRef.current) {
+                      infoWindowRef.current.close();
+                    }
+                  }, 100);
+                }
+              });
+            }
+          }, 100);
+        }
+      });
+
+      // Optional: Add mouseover for preview (closes on mouseout)
+      marker.addListener('mouseover', () => {
+        if (infoWindowRef.current && !isInfoWindowFromClick.current) {
+          const content = `
+            <div class="p-3 max-w-sm">
+              <h3 class="font-bold text-lg mb-1">${temple.name}</h3>
+              <p class="text-sm text-gray-600 mb-2">${temple.location}</p>
+              ${temple.image ? `<img src="${temple.image.imageUrl}" alt="${temple.name}" class="w-full h-32 object-cover rounded mb-2" />` : ''}
+              <div class="flex gap-2">
+                <a href="/temples/${temple._id}" class="inline-block bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">View Details</a>
+                <a href="/poojas?search=${encodeURIComponent(temple.name)}" class="inline-block bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">Book Pooja</a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${temple.lat},${temple.lng}" target="_blank" class="inline-block bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">Directions</a>
+              </div>
+            </div>
+          `;
+          infoWindowRef.current.setContent(content);
+          infoWindowRef.current.open(googleMapRef.current!, marker);
+        }
+      });
+
+      // Close info window on mouseout only if it was opened by hover
+      marker.addListener('mouseout', () => {
+        if (infoWindowRef.current && !isInfoWindowFromClick.current) {
+          // Add a delay to allow moving cursor to info window
+          (infoWindowRef.current as any)._closeTimeout = setTimeout(() => {
+            if (infoWindowRef.current && !isInfoWindowFromClick.current) {
+              infoWindowRef.current.close();
+            }
+          }, 300);
         }
       });
 

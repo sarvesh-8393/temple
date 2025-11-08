@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Zap } from 'lucide-react';
+import { CreditCard, Zap, ArrowLeft } from 'lucide-react';
 
 const initialUser = {
     id: "test_user_id", // This should come from your auth context
@@ -169,9 +169,20 @@ function PaymentPageContent() {
               <p className="text-sm text-muted-foreground">Redirecting to profile...</p>
             </div>
           ) : (
-            <Button size="lg" className="w-full text-lg font-bold" onClick={handlePayment}>
-              <Zap className="mr-2 h-5 w-5" /> Pay with Razorpay
-            </Button>
+            <div className="w-full space-y-2">
+              <Button size="lg" className="w-full text-lg font-bold" onClick={handlePayment}>
+                <Zap className="mr-2 h-5 w-5" /> Pay with Razorpay
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
+            </div>
           )}
         </CardFooter>
       </Card>

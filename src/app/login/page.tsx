@@ -1,24 +1,22 @@
-
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 
-export default function LoginPage() {
+function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const redirectTo = searchParams.get('from') || '/';
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -38,11 +36,12 @@ export default function LoginPage() {
 
       const data = await response.json();
 
+      // ✅ Proper error handling
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || 'Invalid email or password');
       }
 
-      // Store the token and user data
+      // ✅ Store user + token
       localStorage.setItem('token', data.token);
       setUser(data.user);
 
@@ -50,6 +49,7 @@ export default function LoginPage() {
         title: 'Login Successful',
         description: 'Welcome back!',
       });
+
       router.push(redirectTo);
     } catch (error: any) {
       toast({
@@ -74,37 +74,53 @@ export default function LoginPage() {
             Sign in to continue to TempleConnect.
           </p>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
                 <Input
                     id="email"
                     name="email"
                     type="email"
                     placeholder="devotee@example.com"
-                    defaultValue="devotee.user@example.com"
                     required
                 />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" defaultValue="temple123" required />
-            </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Enter password"
+              required
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
+
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-semibold text-primary hover:underline">
+          <Link
+            href="/signup"
+            className="font-semibold text-primary hover:underline"
+          >
             Sign up
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

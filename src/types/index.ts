@@ -49,6 +49,8 @@ export interface User {
   email: string;
   plan?: 'free' | 'premium';
   bio?: string;
+  role?: string;
+  canCreateRecipes?: boolean;
 }
 
 export interface CartItem {

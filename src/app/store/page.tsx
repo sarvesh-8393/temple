@@ -70,7 +70,7 @@ export default function StorePage() {
         const res = await fetch('/api/cart');
         const carts = await res.json();
         // Assuming we take the first cart for now; in a real app, filter by user
-        const userCart = carts.find((cart: any) => cart.userId === user?.id);
+        const userCart = carts.find((cart: any) => cart.userId === user?._id);
         setCart(userCart?.items || []);
     } catch (error) {
         console.error("Failed to fetch cart:", error);
@@ -87,7 +87,7 @@ export default function StorePage() {
   }, []);
   
   const handleAddToCart = async (product: Product) => {
-    if (!user?.id) {
+    if (!user?._id) {
       toast({
         title: "Error",
         description: "You must be logged in to add items to cart.",
@@ -100,7 +100,7 @@ export default function StorePage() {
         const res = await fetch('/api/cart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: product.id, userId: user.id })
+            body: JSON.stringify({ productId: product.id, userId: user._id })
         });
         if (!res.ok) throw new Error("Failed to add item to cart");
 
