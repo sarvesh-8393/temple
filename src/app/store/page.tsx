@@ -42,6 +42,7 @@ export default function StorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [cartItemId, setCartItemId] = useState(0);
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -141,7 +142,11 @@ export default function StorePage() {
     });
 
     try {
-        const res = await fetch('/api/cart/checkout', { method: 'POST' });
+        const res = await fetch('/api/cart/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user._id })
+        });
         if (!res.ok) throw new Error("Checkout failed");
 
         setTimeout(() => {
@@ -307,7 +312,7 @@ export default function StorePage() {
                 <p className="text-muted-foreground text-sm">{product.description}</p>
               </CardContent>
               <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-                <p className="text-lg font-bold text-primary">${product.price}</p>
+                <p className="text-lg font-bold text-primary">₹{product.price}</p>
                 <Button onClick={() => handleAddToCart(product)}>Add to Cart</Button>
               </CardFooter>
             </Card>
@@ -332,9 +337,9 @@ export default function StorePage() {
                 <Skeleton className="h-10 w-full" />
               ) : cart.length > 0 ? (
                 cart.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className="flex justify-between items-center">
+                  <div key={index} className="flex justify-between items-center">
                     <span>{item.name}</span>
-                    <span className="font-medium">${item.price.toFixed(2)}</span>
+                    <span className="font-medium">₹{item.price.toFixed(2)}</span>
                   </div>
                 ))
               ) : (
@@ -344,14 +349,14 @@ export default function StorePage() {
              <hr className="my-4" />
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>Total</span>
-                <span className="text-primary">${cartTotal.toFixed(2)}</span>
+                <span className="text-primary">₹{cartTotal.toFixed(2)}</span>
               </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowCheckout(false)} disabled={isProcessing}>
                 Cancel
               </Button>
               <Button onClick={handleConfirmPurchase} disabled={isProcessing || cart.length === 0}>
-                {isProcessing ? "Processing..." : `Pay $${cartTotal.toFixed(2)}`}
+                {isProcessing ? "Processing..." : `Pay ₹${cartTotal.toFixed(2)}`}
               </Button>
             </DialogFooter>
           </DialogContent>

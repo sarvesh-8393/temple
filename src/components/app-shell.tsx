@@ -34,7 +34,7 @@ import { useAuth } from "@/contexts/auth-context";
 const navItems = [
   { href: "/", label: "Dashboard" },
   { href: "/poojas", label: "Poojas" },
-  // { href: "/store", label: "Store" },
+  { href: "/store", label: "Store" },
   { href: "/donations", label: "Donations" },
 ];
 
