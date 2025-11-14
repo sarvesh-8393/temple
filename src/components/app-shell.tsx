@@ -34,7 +34,7 @@ import { useAuth } from "@/contexts/auth-context";
 const navItems = [
   { href: "/", label: "Dashboard" },
   { href: "/poojas", label: "Poojas" },
-  { href: "/store", label: "Store" },
+  // { href: "/store", label: "Store" },
   { href: "/donations", label: "Donations" },
 ];
 
@@ -113,12 +113,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="w-full flex-1 flex justify-end items-center gap-4">
             {isLoggedIn ? (
                 <>
-                <Button variant="outline" asChild className="hidden sm:flex">
+                {/* <Button variant="outline" asChild className="hidden sm:flex">
                     <Link href="/pay">
                     <CreditCard className="mr-2 h-4 w-4" />
                     Pay Now
                     </Link>
-                </Button>
+                </Button> */}
                 <Button variant="outline" asChild className="hidden sm:flex">
                     <Link href="/register-temple">
                     <Building className="mr-2 h-4 w-4" />

@@ -135,6 +135,15 @@ export default function StorePage() {
   };
   
   const handleConfirmPurchase = async () => {
+    if (!user?._id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to checkout.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsProcessing(true);
     toast({
       title: "Processing Order...",
