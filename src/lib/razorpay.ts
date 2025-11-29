@@ -10,6 +10,8 @@ export interface PaymentDetails {
   name: string;
   email: string;
   contact?: string;
+  selectedDate?: string;
+  selectedTime?: string;
 }
 
 export const initializeRazorpayPayment = async (details: PaymentDetails) => {

@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       templeName,
       poojaId,
       templeId,
+      poojaTimes,
     } = body;
 
     // Verify the payment signature
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
           templeName,
           poojaId,
           templeId,
+          poojaTimes,
           paymentId: razorpay_payment_id,
           orderId: razorpay_order_id,
           date: new Date(),

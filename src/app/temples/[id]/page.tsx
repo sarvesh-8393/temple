@@ -43,12 +43,25 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { OmIcon } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function TempleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [temple, setTemple] = useState<Temple | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPooja, setSelectedPooja] = useState<Pooja | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
 
   const templeId = params?.id as string;
 
@@ -120,12 +133,27 @@ export default function TempleDetailPage() {
     );
   }
 
-  const handleBookNow = (pooja: Pooja, templeName: string) => {
-    router.push(
-      `/payment?amount=${pooja.price}&templeName=${encodeURIComponent(
-        templeName
-      )}&type=Pooja`
-    );
+  const getAvailableTimes = (pooja: Pooja): string[] => {
+    if (pooja.time && pooja.time !== 'Flexible') {
+      return pooja.time.split(',').map(time => time.trim());
+    }
+    return [];
+  };
+
+  const handleBookNow = (pooja: Pooja) => {
+    setSelectedPooja(pooja);
+    setSelectedDate("");
+    setSelectedTime("");
+  };
+
+  const handleConfirmBooking = () => {
+    if (selectedPooja && selectedDate && selectedTime) {
+      router.push(
+        `/payment?amount=${selectedPooja.price}&templeName=${encodeURIComponent(
+          temple.name
+        )}&type=Pooja&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}`
+      );
+    }
   };
 
   return (
@@ -206,8 +234,72 @@ export default function TempleDetailPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-                  <p className="text-lg font-bold text-primary">₹{pooja.price}</p>
-                  <Button onClick={() => handleBookNow(pooja, temple.name)}>Book Now</Button>
+                  <div>
+                    <p className="text-lg font-bold text-primary">₹{pooja.price}</p>
+                    {pooja.time && pooja.time !== 'Flexible' && (
+                      <p className="text-sm text-muted-foreground">Available: {pooja.time}</p>
+                    )}
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button onClick={() => handleBookNow(pooja)}>Book Now</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Book {selectedPooja?.name}</DialogTitle>
+                        <DialogDescription>
+                          Select your preferred date and time for the pooja.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <label htmlFor="date" className="text-right">
+                            Date
+                          </label>
+                          <Input
+                            id="date"
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="col-span-3"
+                            min={new Date().toISOString().split('T')[0]}
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <label htmlFor="time" className="text-right">
+                            Time
+                          </label>
+                          <Select value={selectedTime} onValueChange={setSelectedTime}>
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {selectedPooja && getAvailableTimes(selectedPooja).map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {time}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => {
+                          setSelectedPooja(null);
+                          setSelectedDate("");
+                          setSelectedTime("");
+                        }}>
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleConfirmBooking}
+                          disabled={!selectedDate || !selectedTime}
+                        >
+                          Confirm Booking
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardFooter>
               </Card>
             ))}

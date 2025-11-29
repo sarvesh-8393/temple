@@ -38,6 +38,9 @@ function PaymentPageContent() {
   const baseAmount = parseInt(searchParams.get('amount') || '0');
   const templeName = searchParams.get('templeName') || 'the temple';
   const type = searchParams.get('type') || 'Payment';
+  const poojaTimes = searchParams.get('poojaTimes');
+  const selectedDate = searchParams.get('selectedDate');
+  const selectedTime = searchParams.get('selectedTime');
 
   const isPremium = mounted && user?.plan === 'premium';
   const isPremiumSubscription = type === 'Premium Subscription';
@@ -76,6 +79,7 @@ function PaymentPageContent() {
         userId: user._id,
         name: user.displayName,
         email: user.email,
+        poojaTimes,
       };
       const templeId = searchParams.get('templeId');
       if (templeId && templeId.length === 24) paymentDetails.templeId = templeId;
@@ -117,6 +121,16 @@ function PaymentPageContent() {
           </CardTitle>
           <CardDescription>
             You are about to make a {type.toLowerCase()} of ₹{baseAmount} to {templeName}.
+            {selectedDate && selectedTime && (
+              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                <strong>Selected Date & Time:</strong> {new Date(selectedDate).toLocaleDateString()} at {selectedTime}
+              </div>
+            )}
+            {poojaTimes && (
+              <div className="mt-2 p-2 bg-muted rounded text-sm">
+                <strong>Available Times:</strong> {poojaTimes}
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

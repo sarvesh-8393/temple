@@ -61,11 +61,12 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   bio: String,
   bookingHistory: [{
-    type: { type: String, enum: ['Pooja', 'Donation'], required: true },
+    type: { type: String, enum: ['Pooja', 'Donation', 'Premium Subscription'], required: true },
     amount: { type: Number, required: true },
     templeName: { type: String, required: true },
     poojaId: String,
     templeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Temple' },
+    poojaTime: String,
     paymentId: { type: String, required: true },
     orderId: { type: String, required: true },
     date: { type: Date, default: Date.now },

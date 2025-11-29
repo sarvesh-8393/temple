@@ -306,6 +306,13 @@ export default function ProfilePage() {
                                 <span className="font-medium">Amount:</span>
                                 <span>₹{booking.amount}</span>
                               </div>
+                              {booking.poojaTimes && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium">Available Times:</span>
+                                  <span>{booking.poojaTimes}</span>
+                                </div>
+                              )}
                               <div className="border-t pt-4 space-y-2">
                                 <div className="text-sm">
                                   <span className="font-medium">Payment ID:</span>

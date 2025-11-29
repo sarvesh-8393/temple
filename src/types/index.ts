@@ -21,6 +21,7 @@ export interface Temple {
 
 export interface Pooja {
   id: string;
+  _id?: string;
   name: string;
   description: string;
   price: number;
@@ -28,6 +29,9 @@ export interface Pooja {
     imageUrl: string;
     imageHint?: string;
   };
+  date?: string;
+  time?: string;
+  tags: string[];
 }
 
 export interface Product {

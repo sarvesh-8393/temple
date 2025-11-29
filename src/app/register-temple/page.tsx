@@ -32,6 +32,7 @@ const poojaSchema = z.object({
   name: z.string().min(1, "Pooja name is required."),
   description: z.string().min(10, "Description must be at least 10 characters long."),
   price: z.coerce.number().min(0, "Price must be a positive number."),
+  times: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -69,7 +70,7 @@ export default function RegisterTemplePage() {
       description: "",
       contactEmail: "",
       imageUrl: "",
-      poojas: [{ name: "", description: "", price: 0 }],
+      poojas: [{ name: "", description: "", price: 0, times: "" }],
     },
     mode: "onChange",
   });
@@ -367,13 +368,27 @@ export default function RegisterTemplePage() {
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name={`poojas.${index}.times`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Available Times (optional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 9:00 AM, 11:00 AM, 3:00 PM" {...field} />
+                                </FormControl>
+                                <FormDescription>Enter comma-separated times for this pooja (e.g., 9:00 AM, 11:00 AM, 3:00 PM)</FormDescription>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                       </div>
                     ))}
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => append({ name: "", description: "", price: 0 })}
+                      onClick={() => append({ name: "", description: "", price: 0, times: "" })}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add Pooja

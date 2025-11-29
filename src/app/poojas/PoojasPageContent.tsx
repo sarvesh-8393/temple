@@ -17,6 +17,15 @@ import { OmIcon } from "@/components/icons";
 // Removed import from '@/lib/db' as requested
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Image {
   imageUrl: string;
@@ -50,6 +59,11 @@ export default function PoojasPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
   const [error, setError] = useState<string | null>(null);
+  const [selectedPooja, setSelectedPooja] = useState<Pooja | null>(null);
+  const [selectedTempleName, setSelectedTempleName] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchPoojas = async () => {
@@ -70,12 +84,37 @@ export default function PoojasPageContent() {
     fetchPoojas();
   }, []);
 
+  const getAvailableTimes = (pooja: Pooja) => {
+    if (pooja.time && pooja.time !== 'Flexible') {
+      return pooja.time.split(',').map(time => time.trim());
+    }
+    return [];
+  };
+
   const handleBookNow = (pooja: Pooja, templeName: string) => {
-    router.push(
-      `/payment?amount=${pooja.price}&templeName=${encodeURIComponent(
-        templeName
-      )}&type=Pooja`
-    );
+    setSelectedPooja(pooja);
+    setSelectedTempleName(templeName);
+    setSelectedDate("");
+    setSelectedTime("");
+    setIsBookingDialogOpen(true);
+  };
+
+  const handleConfirmBooking = () => {
+    if (!selectedPooja || !selectedDate || !selectedTime) return;
+
+    const params = new URLSearchParams({
+      amount: selectedPooja.price.toString(),
+      templeName: selectedTempleName,
+      type: 'Pooja',
+      poojaId: selectedPooja.id,
+      selectedDate: selectedDate,
+      selectedTime: selectedTime,
+    });
+    if (selectedPooja.time) {
+      params.append('poojaTime', selectedPooja.time);
+    }
+    setIsBookingDialogOpen(false);
+    router.push(`/payment?${params.toString()}`);
   };
 
   const filteredTemples = temples.map(temple => {
@@ -180,8 +219,68 @@ export default function PoojasPageContent() {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-                                    <p className="text-lg font-bold text-primary">₹{pooja.price}</p>
-                                    <Button onClick={() => handleBookNow(pooja, temple.name)}>Book Now</Button>
+                                    <div>
+                                        <p className="text-lg font-bold text-primary">₹{pooja.price}</p>
+                                        {pooja.time && pooja.time !== 'Flexible' && (
+                                            <p className="text-sm text-muted-foreground">Available: {pooja.time}</p>
+                                        )}
+                                    </div>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button onClick={() => handleBookNow(pooja, temple.name)}>Book Now</Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="sm:max-w-[425px]">
+                                        <DialogHeader>
+                                          <DialogTitle>Book {selectedPooja?.name}</DialogTitle>
+                                          <DialogDescription>
+                                            Select your preferred date and time for the pooja.
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                          <div className="grid grid-cols-4 items-center gap-4">
+                                            <label htmlFor="date" className="text-right">
+                                              Date
+                                            </label>
+                                            <Input
+                                              id="date"
+                                              type="date"
+                                              value={selectedDate}
+                                              onChange={(e) => setSelectedDate(e.target.value)}
+                                              className="col-span-3"
+                                              min={new Date().toISOString().split('T')[0]}
+                                            />
+                                          </div>
+                                          <div className="grid grid-cols-4 items-center gap-4">
+                                            <label htmlFor="time" className="text-right">
+                                              Time
+                                            </label>
+                                            <Select value={selectedTime} onValueChange={setSelectedTime}>
+                                              <SelectTrigger className="col-span-3">
+                                                <SelectValue placeholder="Select time" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {selectedPooja && getAvailableTimes(selectedPooja).map((time) => (
+                                                  <SelectItem key={time} value={time}>
+                                                    {time}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                          <Button variant="outline" onClick={() => setIsBookingDialogOpen(false)}>
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            onClick={handleConfirmBooking}
+                                            disabled={!selectedDate || !selectedTime}
+                                          >
+                                            Confirm Booking
+                                          </Button>
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
                                 </CardFooter>
                                 </Card>
                             ))}
