@@ -88,7 +88,7 @@ export async function POST(request: Request) {
                 },
                 tags: [],
                 date: 'Upon Request',
-                time: pooja.time || 'Flexible'
+                time: pooja.times || 'Flexible'
             })),
             creator: decoded.userId
         });
