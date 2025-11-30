@@ -44,6 +44,8 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'a70cgsvw0i.ufs.sh', pathname: '/**' },
       { protocol: 'https', hostname: '9jasr4gb8l.ufs.sh', pathname: '/**' },
       { protocol: 'https', hostname: 'maps.googleapis.com', pathname: '/**' },
+      { protocol: 'https', hostname: '9xx1umaqz1.ufs.sh', pathname: '/**' },
+
     ],
   },
   env: {
