@@ -298,7 +298,7 @@ export default function RegisterTemplePage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Provide a direct web link (URL) to your temple photo. The URL should start with 'http://' or 'https://' 
+                          Provide a direct web link (URL) to your temple photo. The URL should start with &apos;http://&apos; or &apos;https://&apos; 
                           and point directly to an image file. You can upload your image to a service like Imgur or similar and use that link.
                         </FormDescription>
                         <FormMessage />

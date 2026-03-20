@@ -236,7 +236,7 @@ export default function PayPage() {
                 Send Money to Mobile Number
               </CardTitle>
               <CardDescription>
-                Enter recipient's phone number and amount to send money
+                Enter recipient&apos;s phone number and amount to send money
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -327,19 +327,19 @@ export default function PayPage() {
               <div className="flex items-start gap-3">
                 <Badge variant="outline" className="mt-1">1</Badge>
                 <div>
-                  <h4 className="font-semibold">"Send Money to Mobile Number"</h4>
+                  <h4 className="font-semibold">&quot;Send Money to Mobile Number&quot;</h4>
                   <p className="text-sm text-muted-foreground">
                     User enters phone + amount. Razorpay order created. Razorpay test checkout opens.
-                    Click "Pay with UPI". Click "Success". Razorpay confirms payment. Webhook fires.
+                    Click &quot;Pay with UPI&quot;. Click &quot;Success&quot;. Razorpay confirms payment. Webhook fires.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Badge variant="outline" className="mt-1">2</Badge>
                 <div>
-                  <h4 className="font-semibold">"Scan QR → Pay Merchant"</h4>
+                  <h4 className="font-semibold">&quot;Scan QR → Pay Merchant&quot;</h4>
                   <p className="text-sm text-muted-foreground">
-                    Since it's test mode: QR scanning works. Payment still happens in the test checkout.
+                    Since it&apos;s test mode: QR scanning works. Payment still happens in the test checkout.
                     No actual merchant is paid.
                   </p>
                 </div>
