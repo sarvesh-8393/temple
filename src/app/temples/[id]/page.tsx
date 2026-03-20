@@ -20,6 +20,11 @@ interface Pooja {
   tags: string[];
 }
 
+interface Crowd {
+  current: number;
+  updatedAt: string | null;
+}
+
 interface Temple {
   id?: string;
   _id?: string;
@@ -28,6 +33,7 @@ interface Temple {
   location: string;
   image: Image;
   poojas: Pooja[];
+  crowd?: Crowd;
 }
 
 import {
@@ -59,6 +65,7 @@ export default function TempleDetailPage() {
   const router = useRouter();
   const [temple, setTemple] = useState<Temple | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCrowdLoading, setIsCrowdLoading] = useState(false);
   const [selectedPooja, setSelectedPooja] = useState<Pooja | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -75,9 +82,7 @@ export default function TempleDetailPage() {
       try {
         setIsLoading(true);
         const res = await fetch(`/api/temples/${templeId}`);
-        if (!res.ok) {
-          throw new Error('Temple not found');
-        }
+        if (!res.ok) throw new Error('Temple not found');
         const data = await res.json();
         setTemple(data);
       } catch (error) {
@@ -87,7 +92,25 @@ export default function TempleDetailPage() {
         setIsLoading(false);
       }
     };
+
     fetchTemple();
+
+    const interval = setInterval(async () => {
+      try {
+        setIsCrowdLoading(true);
+        const res = await fetch(`/api/temples/${templeId}`);
+        if (!res.ok) {
+          return;
+        }
+        const data = await res.json();
+        setTemple(prev => prev ? { ...prev, crowd: data.crowd } : prev);
+      } catch {
+      } finally {
+        setIsCrowdLoading(false);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [templeId]);
 
 
@@ -191,6 +214,27 @@ export default function TempleDetailPage() {
             </CardContent>
           </Card>
         </section>
+
+        {temple.crowd !== undefined && (
+          <section className="mb-12">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl">Live Crowd</CardTitle>
+                <CardDescription>
+                  {temple.crowd.updatedAt
+                    ? `Last updated: ${new Date(temple.crowd.updatedAt).toLocaleTimeString('en-IN')}`
+                    : 'Sensor data unavailable'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <p className="text-6xl font-bold text-primary">{temple.crowd.current}</p>
+                  <p className="text-sm text-muted-foreground mt-1">People inside right now</p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* Poojas Section */}
         <section>

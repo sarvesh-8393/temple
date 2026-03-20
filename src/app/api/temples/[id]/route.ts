@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase, Temple } from '@/lib/mongodb';
+import { Crowd } from '@/lib/models/Crowd';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectToDatabase();
 
     const { id } = await params;
-    const temple = await Temple.findById(id).lean();
+
+    const [temple, crowdDoc] = await Promise.all([
+      Temple.findById(id).lean(),
+      Crowd.findOne({ templeId: id }).lean(),
+    ]);
+
     if (!temple) {
       return NextResponse.json({ message: "Temple not found" }, { status: 404 });
     }
@@ -25,7 +31,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       image: {
         ...((temple as any).image || {}),
         imageUrl: validImage,
-      }
+      },
+      crowd: {
+        current: (crowdDoc as any)?.crowd ?? 0,
+        updatedAt: (crowdDoc as any)?.updatedAt ?? null,
+      },
     };
 
     return NextResponse.json(mapped);
