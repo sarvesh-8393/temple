@@ -179,6 +179,10 @@ export default function TempleDetailPage() {
     }
   };
 
+  const crowdCount = temple.crowd?.current ?? 0;
+  const isModerateCrowd = crowdCount >= 20 && crowdCount < 30;
+  const isCrowded = crowdCount >= 30;
+
   return (
     <main className="flex-1">
       {/* Temple Header */}
@@ -227,9 +231,23 @@ export default function TempleDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center">
+                <div
+                  className={`text-center rounded-lg p-6 transition-colors ${
+                    isCrowded
+                      ? 'bg-red-100'
+                      : isModerateCrowd
+                        ? 'bg-orange-100'
+                        : 'bg-background'
+                  }`}
+                >
                   <p className="text-6xl font-bold text-primary">{temple.crowd.current}</p>
                   <p className="text-sm text-muted-foreground mt-1">People inside right now</p>
+                  {isModerateCrowd && (
+                    <p className="mt-2 text-sm font-semibold text-orange-700">Moderate crowd</p>
+                  )}
+                  {isCrowded && (
+                    <p className="mt-2 text-sm font-semibold text-red-700">Crowded</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
