@@ -36,6 +36,10 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const isPremiumMember = mounted && user?.plan === 'premium';
+  const sortedBookingHistory = mounted && user?.bookingHistory
+    ? [...user.bookingHistory].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    : [];
 
   useEffect(() => {
     setMounted(true);
@@ -49,7 +53,7 @@ export default function ProfilePage() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('showReceipt') === 'true') {
         // Show the most recent booking
-        const latestBooking = user.bookingHistory.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        const latestBooking = [...user.bookingHistory].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
         setSelectedBooking(latestBooking);
         setShowReceiptModal(true);
         // Clean up URL
@@ -62,13 +66,67 @@ export default function ProfilePage() {
     router.push('/payment?amount=299&templeName=TempleConnect&type=Premium%20Subscription');
   };
 
+  if (!mounted) {
+    return (
+      <main className="flex-1 p-4 md:p-8">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 flex flex-col items-start gap-8 sm:flex-row">
+            <div className="h-24 w-24 rounded-full border-4 border-primary bg-muted" />
+            <div className="flex-1 space-y-3">
+              <div className="h-8 w-48 rounded bg-muted" />
+              <div className="h-4 w-64 rounded bg-muted" />
+              <div className="h-4 w-40 rounded bg-muted" />
+            </div>
+          </div>
+
+          <div className="mb-10 grid items-stretch gap-8 md:grid-cols-2">
+            <Card className="flex flex-col shadow-lg">
+              <CardHeader>
+                <CardTitle>Loading...</CardTitle>
+                <CardDescription>Please wait while we load your profile.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-3">
+                <div className="h-4 w-full rounded bg-muted" />
+                <div className="h-4 w-5/6 rounded bg-muted" />
+                <div className="h-4 w-2/3 rounded bg-muted" />
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col shadow-lg">
+              <CardHeader>
+                <CardTitle>Loading...</CardTitle>
+                <CardDescription>Preparing subscription details.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-3">
+                <div className="h-4 w-full rounded bg-muted" />
+                <div className="h-4 w-5/6 rounded bg-muted" />
+                <div className="h-4 w-2/3 rounded bg-muted" />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <div className="h-7 w-64 rounded bg-muted" />
+            <Card className="shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <div className="h-4 w-full rounded bg-muted" />
+                  <div className="h-4 w-5/6 rounded bg-muted" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex-1 p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex flex-col items-start gap-8 sm:flex-row">
           <Avatar className="h-24 w-24 border-4 border-primary">
             <AvatarImage
-              src={user?.photoURL}
+              src={mounted ? user?.photoURL : undefined}
             />
             <AvatarFallback>
               {mounted ? (
@@ -97,7 +155,7 @@ export default function ProfilePage() {
               {mounted ? (user?.email || 'devotee.user@example.com') : 'devotee.user@example.com'}
             </p>
             <p className="mt-4">
-              {user?.bio || 'A devoted temple visitor.'}
+              {mounted ? (user?.bio || 'A devoted temple visitor.') : 'A devoted temple visitor.'}
             </p>
           </div>
         </div>
@@ -109,25 +167,25 @@ export default function ProfilePage() {
           <div className="grid items-stretch gap-8 md:grid-cols-2">
             <Card className="flex flex-col shadow-lg">
               <CardHeader>
-                <CardTitle>{user?.plan === 'premium' ? 'Premium Plan' : 'Free Plan'}</CardTitle>
+                <CardTitle>{isPremiumMember ? 'Premium Plan' : 'Free Plan'}</CardTitle>
                 <CardDescription>
-                  {user?.plan === 'premium' ? 'Your current premium membership benefits.' : 'Basic access to our community and services.'}
+                  {isPremiumMember ? 'Your current premium membership benefits.' : 'Basic access to our community and services.'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-3">
                 <p className="flex items-center gap-2">
-                  <CheckCircle className={`h-5 w-5 ${user?.plan === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
+                  <CheckCircle className={`h-5 w-5 ${isPremiumMember ? 'text-accent' : 'text-muted-foreground'}`} />
                   <span>Browse temples and poojas</span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <CheckCircle className={`h-5 w-5 ${user?.plan === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
+                  <CheckCircle className={`h-5 w-5 ${isPremiumMember ? 'text-accent' : 'text-muted-foreground'}`} />
                   <span>Make donations</span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <CheckCircle className={`h-5 w-5 ${user?.plan === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
+                  <CheckCircle className={`h-5 w-5 ${isPremiumMember ? 'text-accent' : 'text-muted-foreground'}`} />
                   <span>Purchase from store</span>
                 </p>
-                {user?.plan === 'premium' && (
+                {isPremiumMember && (
                   <>
                     <p className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-accent" />
@@ -151,7 +209,7 @@ export default function ProfilePage() {
               </CardFooter>
             </Card>
 
-            {user?.plan !== 'premium' && (
+            {!isPremiumMember && (
               <Card className="relative flex flex-col border-2 border-accent shadow-lg">
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
                   Recommended
@@ -213,9 +271,8 @@ export default function ProfilePage() {
             Booking History & Receipts
           </h2>
           <div className="space-y-4">
-            {user?.bookingHistory && user.bookingHistory.length > 0 ? (
-              user.bookingHistory
-                .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            {sortedBookingHistory.length > 0 ? (
+              sortedBookingHistory
                 .map((booking: any, index: number) => (
                   <Card key={booking.paymentId || index} className="shadow-lg">
                     <CardHeader>

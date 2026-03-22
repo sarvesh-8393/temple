@@ -20,7 +20,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building, PlusCircle, Trash2, IndianRupee } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 // Declare global window interface for Google Maps
 declare global {
@@ -59,8 +58,7 @@ const formSchema = z.object({
 export default function RegisterTemplePage() {
   const { toast } = useToast();
   const addressInputRef = useRef<HTMLInputElement>(null);
-  const searchParams = useSearchParams();
-  const templeId = searchParams.get('templeId');
+  const [templeId, setTempleId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoadingTemple, setIsLoadingTemple] = useState(false);
 
@@ -84,6 +82,12 @@ export default function RegisterTemplePage() {
     control: form.control,
     name: "poojas",
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    setTempleId(params.get('templeId'));
+  }, []);
 
   // Fetch temple data if editing
   useEffect(() => {
