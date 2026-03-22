@@ -19,7 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building, PlusCircle, Trash2, IndianRupee } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 // Declare global window interface for Google Maps
 declare global {
@@ -58,6 +59,10 @@ const formSchema = z.object({
 export default function RegisterTemplePage() {
   const { toast } = useToast();
   const addressInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
+  const templeId = searchParams.get('templeId');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoadingTemple, setIsLoadingTemple] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,6 +84,53 @@ export default function RegisterTemplePage() {
     control: form.control,
     name: "poojas",
   });
+
+  // Fetch temple data if editing
+  useEffect(() => {
+    if (templeId) {
+      setIsEditMode(true);
+      setIsLoadingTemple(true);
+      const fetchTemple = async () => {
+        try {
+          const res = await fetch(`/api/temples/${templeId}`);
+          if (!res.ok) throw new Error('Temple not found');
+          const data = await res.json();
+          
+          // Populate form with temple data
+          form.reset({
+            templeName: data.name,
+            address: data.location,
+            city: data.city || "",
+            state: data.state || "",
+            zipCode: data.zipCode || "",
+            description: data.description,
+            contactEmail: data.contactEmail || "",
+            imageUrl: data.image?.imageUrl || "",
+            lat: data.lat,
+            lng: data.lng,
+            placeId: data.placeId,
+            poojas: data.poojas?.map((pooja: any) => ({
+              name: pooja.name,
+              description: pooja.description,
+              price: pooja.price,
+              times: pooja.time || "",
+            })) || [{ name: "", description: "", price: 0, times: "" }],
+          });
+        } catch (error) {
+          console.error("Failed to fetch temple:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load temple data. Please try again.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoadingTemple(false);
+        }
+      };
+
+      fetchTemple();
+    }
+  }, [templeId, form, toast]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && addressInputRef.current) {
@@ -129,8 +181,11 @@ export default function RegisterTemplePage() {
             throw new Error('You must be logged in to register a temple');
         }
 
-        const response = await fetch('/api/temples', {
-            method: 'POST',
+        const url = isEditMode && templeId ? `/api/temples/${templeId}` : '/api/temples';
+        const method = isEditMode && templeId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
@@ -140,23 +195,26 @@ export default function RegisterTemplePage() {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to register temple');
+            throw new Error(errorData.message || `Failed to ${isEditMode ? 'update' : 'register'} temple`);
         }
 
         const result = await response.json();
-        console.log('Temple registered successfully:', result);
+        console.log(`Temple ${isEditMode ? 'updated' : 'registered'} successfully:`, result);
 
         toast({
-            title: "Registration Submitted!",
-            description: "Your temple profile has been created successfully.",
+            title: `${isEditMode ? 'Updated' : 'Registration Submitted'}!`,
+            description: `Your temple profile has been ${isEditMode ? 'updated' : 'created'} successfully.`,
         });
-        form.reset();
+        
+        if (!isEditMode) {
+            form.reset();
+        }
 
     } catch (error: any) {
-        console.error("Registration error:", error);
+        console.error(`${isEditMode ? 'Update' : 'Registration'} error:`, error);
         toast({
-            title: "Registration Failed",
-            description: error.message || "There was an error submitting your registration. Please try again.",
+            title: `${isEditMode ? 'Update' : 'Registration'} Failed`,
+            description: error.message || `There was an error ${isEditMode ? 'updating' : 'submitting'} your registration. Please try again.`,
             variant: "destructive",
         });
     }
@@ -168,15 +226,21 @@ export default function RegisterTemplePage() {
         <div className="flex items-center gap-4 mb-8">
           <Building className="w-10 h-10 text-primary" />
           <div>
-            <h1 className="text-3xl font-headline font-bold tracking-tight">Register Your Temple</h1>
-            <p className="text-muted-foreground">Join our community and connect with devotees worldwide.</p>
+            <h1 className="text-3xl font-headline font-bold tracking-tight">
+              {isEditMode ? 'Update Temple' : 'Register Your Temple'}
+            </h1>
+            <p className="text-muted-foreground">
+              {isEditMode ? 'Update your temple profile information.' : 'Join our community and connect with devotees worldwide.'}
+            </p>
           </div>
         </div>
 
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Temple Information</CardTitle>
-            <CardDescription>Fill out the form below to create a profile for your temple.</CardDescription>
+            <CardDescription>
+              {isEditMode ? 'Update the temple profile below.' : 'Fill out the form below to create a profile for your temple.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -396,8 +460,8 @@ export default function RegisterTemplePage() {
                   </div>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-                  Submit for Review
+                <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting || isLoadingTemple}>
+                  {isEditMode ? 'Update Temple' : 'Submit for Review'}
                 </Button>
               </form>
             </Form>

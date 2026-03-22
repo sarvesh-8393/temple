@@ -59,7 +59,7 @@ export default function ProfilePage() {
   }, [user, router, mounted]);
 
   const handleUpgrade = () => {
-    router.push('/payment?amount=499&templeName=TempleConnect&type=Premium%20Subscription');
+    router.push('/payment?amount=299&templeName=TempleConnect&type=Premium%20Subscription');
   };
 
   return (
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                       Unlock exclusive benefits and support us more.
                     </CardDescription>
                     <p className="pt-2 text-3xl font-bold">
-                      ₹499<span className="text-sm font-normal">/month</span>
+                      ₹299<span className="text-sm font-normal">/month</span>
                     </p>
                   </CardHeader>
                   <CardContent className="flex-grow space-y-3">

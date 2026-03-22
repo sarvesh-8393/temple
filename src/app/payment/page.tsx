@@ -166,7 +166,7 @@ function PaymentPageContent() {
                         variant="outline"
                         size="sm"
                         className="mt-2"
-                        onClick={() => router.push('/payment?amount=499&templeName=TempleConnect&type=Premium%20Subscription')}
+                        onClick={() => router.push('/payment?amount=299&templeName=TempleConnect&type=Premium%20Subscription')}
                     >
                         Upgrade Now
                     </Button>

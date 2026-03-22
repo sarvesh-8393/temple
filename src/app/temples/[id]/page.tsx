@@ -216,6 +216,14 @@ export default function TempleDetailPage() {
             <CardContent>
               <p className="text-muted-foreground">{temple.description}</p>
             </CardContent>
+            <CardFooter>
+              <Button 
+                onClick={() => router.push(`/register-temple?templeId=${templeId}`)}
+                variant="outline"
+              >
+                Edit Temple
+              </Button>
+            </CardFooter>
           </Card>
         </section>
 
