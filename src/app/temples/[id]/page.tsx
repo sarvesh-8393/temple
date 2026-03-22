@@ -66,6 +66,7 @@ export default function TempleDetailPage() {
   const [temple, setTemple] = useState<Temple | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCrowdLoading, setIsCrowdLoading] = useState(false);
+  const [showCrowdCount, setShowCrowdCount] = useState(false);
   const [selectedPooja, setSelectedPooja] = useState<Pooja | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -95,7 +96,19 @@ export default function TempleDetailPage() {
 
     fetchTemple();
 
-    const interval = setInterval(async () => {
+    return () => {};
+  }, [templeId]);
+
+  useEffect(() => {
+    if (!templeId || !showCrowdCount) {
+      return;
+    }
+
+    const fetchCrowd = async () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+
       try {
         setIsCrowdLoading(true);
         const res = await fetch(`/api/temples/${templeId}`);
@@ -108,10 +121,28 @@ export default function TempleDetailPage() {
       } finally {
         setIsCrowdLoading(false);
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
-  }, [templeId]);
+    fetchCrowd();
+    const interval = setInterval(fetchCrowd, 5000);
+    const autoStopTimer = setTimeout(() => {
+      setShowCrowdCount(false);
+    }, 60000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchCrowd();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(autoStopTimer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [templeId, showCrowdCount]);
 
 
   if (isLoading) {
@@ -239,24 +270,36 @@ export default function TempleDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div
-                  className={`text-center rounded-lg p-6 transition-colors ${
-                    isCrowded
-                      ? 'bg-red-100'
-                      : isModerateCrowd
-                        ? 'bg-orange-100'
-                        : 'bg-background'
-                  }`}
-                >
-                  <p className="text-6xl font-bold text-primary">{temple.crowd.current}</p>
-                  <p className="text-sm text-muted-foreground mt-1">People inside right now</p>
-                  {isModerateCrowd && (
-                    <p className="mt-2 text-sm font-semibold text-orange-700">Moderate crowd</p>
-                  )}
-                  {isCrowded && (
-                    <p className="mt-2 text-sm font-semibold text-red-700">Crowded</p>
-                  )}
-                </div>
+                {!showCrowdCount ? (
+                  <div className="text-center rounded-lg p-6 bg-background border">
+                    <p className="text-sm text-muted-foreground mb-4">Click to view live crowd for 1 minute.</p>
+                    <Button onClick={() => setShowCrowdCount(true)}>
+                      Show Live Crowd
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className={`text-center rounded-lg p-6 transition-colors ${
+                      isCrowded
+                        ? 'bg-red-100'
+                        : isModerateCrowd
+                          ? 'bg-orange-100'
+                          : 'bg-background'
+                    }`}
+                  >
+                    <p className="text-6xl font-bold text-primary">{temple.crowd.current}</p>
+                    <p className="text-sm text-muted-foreground mt-1">People inside right now</p>
+                    {isCrowdLoading && (
+                      <p className="mt-2 text-xs text-muted-foreground">Updating...</p>
+                    )}
+                    {isModerateCrowd && (
+                      <p className="mt-2 text-sm font-semibold text-orange-700">Moderate crowd</p>
+                    )}
+                    {isCrowded && (
+                      <p className="mt-2 text-sm font-semibold text-red-700">Crowded</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </section>
