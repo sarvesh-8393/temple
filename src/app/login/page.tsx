@@ -45,6 +45,12 @@ function LoginForm() {
       localStorage.setItem('token', data.token);
       setUser(data.user);
 
+      // Reset popup flags on login so eligible free users see the subscription popup.
+      sessionStorage.removeItem('subscriptionPopupShown');
+      if (data.user?._id) {
+        sessionStorage.removeItem(`subscriptionPopupShown:${data.user._id}`);
+      }
+
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',

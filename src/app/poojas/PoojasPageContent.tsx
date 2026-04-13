@@ -25,7 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Image {
   imageUrl: string;
@@ -46,6 +45,7 @@ interface Pooja {
 
 interface Temple {
   id: string;
+  _id?: string;
   name: string;
   location: string;
   image: Image;
@@ -83,13 +83,6 @@ export default function PoojasPageContent() {
     };
     fetchPoojas();
   }, []);
-
-  const getAvailableTimes = (pooja: Pooja) => {
-    if (pooja.time && pooja.time !== 'Flexible') {
-      return pooja.time.split(',').map(time => time.trim());
-    }
-    return [];
-  };
 
   const handleBookNow = (pooja: Pooja, templeName: string) => {
     setSelectedPooja(pooja);
@@ -174,8 +167,8 @@ export default function PoojasPageContent() {
                         </section>
                     ))
                 ) : filteredTemples.length > 0 ? (
-                    filteredTemples.map((temple) => (
-                        <section key={temple.id}>
+                    filteredTemples.map((temple, templeIdx) => (
+                      <section key={temple.id || temple._id || `${temple.name}-${templeIdx}`}>
                             <div className="flex items-center gap-4 mb-6">
                                 <Image src={temple.image.imageUrl} alt={temple.name} width={60} height={60} className="rounded-full border-2 border-primary" data-ai-hint={temple.image.imageHint} />
                                 <div>
@@ -254,18 +247,13 @@ export default function PoojasPageContent() {
                                             <label htmlFor="time" className="text-right">
                                               Time
                                             </label>
-                                            <Select value={selectedTime} onValueChange={setSelectedTime}>
-                                              <SelectTrigger className="col-span-3">
-                                                <SelectValue placeholder="Select time" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                {selectedPooja && getAvailableTimes(selectedPooja).map((time) => (
-                                                  <SelectItem key={time} value={time}>
-                                                    {time}
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
+                                            <Input
+                                              id="time"
+                                              type="time"
+                                              value={selectedTime}
+                                              onChange={(e) => setSelectedTime(e.target.value)}
+                                              className="col-span-3"
+                                            />
                                           </div>
                                         </div>
                                         <div className="flex justify-end gap-2">

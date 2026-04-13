@@ -63,13 +63,25 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const router = useRouter();
   const isPremium = user?.plan === 'premium';
+  const subscriptionPopupKey = user?._id
+    ? `subscriptionPopupShown:${user._id}`
+    : 'subscriptionPopupShown';
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    // Keep plan status in sync (e.g., right after premium purchase)
+    refreshUser().catch((error) => {
+      console.error('Failed to refresh user on home page:', error);
+    });
+  }, [mounted, refreshUser]);
 
   useEffect(() => {
     const fetchTemples = async () => {
@@ -121,31 +133,40 @@ export default function HomePage() {
     }
   }, [allTemples]);
 
-  // Show subscription popup for all users after login
   useEffect(() => {
-    console.log('Popup effect triggered:', { mounted, user: user ? { plan: user.plan, email: user.email } : null });
-    if (mounted && user) {
-      const hasShownPopup = sessionStorage.getItem('subscriptionPopupShown');
-      console.log('Checking popup conditions:', { hasShownPopup, plan: user.plan });
-      if (!hasShownPopup) {
-        console.log('Showing popup in 1 second');
-        // Add a small delay to ensure the page has loaded
-        setTimeout(() => {
-          console.log('Setting showSubscriptionPopup to true');
-          setShowSubscriptionPopup(true);
-        }, 1000);
-      }
+    if (!mounted || !user) {
+      setShowSubscriptionPopup(false);
+      return;
     }
-  }, [user, mounted]);
+
+    // Never show upgrade popup to premium users.
+    if (user.plan === 'premium') {
+      setShowSubscriptionPopup(false);
+      sessionStorage.setItem(subscriptionPopupKey, 'true');
+      return;
+    }
+
+    const hasShownPopup = sessionStorage.getItem(subscriptionPopupKey);
+    if (hasShownPopup) {
+      setShowSubscriptionPopup(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowSubscriptionPopup(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [user, mounted, subscriptionPopupKey]);
 
   const handleDismissPopup = () => {
     setShowSubscriptionPopup(false);
-    sessionStorage.setItem('subscriptionPopupShown', 'true');
+    sessionStorage.setItem(subscriptionPopupKey, 'true');
   };
 
   const handleSubscribe = () => {
     setShowSubscriptionPopup(false);
-    sessionStorage.setItem('subscriptionPopupShown', 'true');
+    sessionStorage.setItem(subscriptionPopupKey, 'true');
     router.push('/profile');
   };
 
@@ -231,7 +252,7 @@ export default function HomePage() {
         </section>
 
         {/* 5. Subscription Benefits Section */}
-        {mounted && !isPremium && (
+        {mounted && !!user && !isPremium && (
             <section className="text-center">
                 <h2 className="text-3xl font-headline font-bold mb-4">Unlock Premium Benefits</h2>
                 <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -253,7 +274,10 @@ export default function HomePage() {
       </main>
 
       {/* Subscription Popup */}
-      <Dialog open={showSubscriptionPopup} onOpenChange={setShowSubscriptionPopup}>
+      <Dialog
+        open={!isPremium && showSubscriptionPopup}
+        onOpenChange={(open) => setShowSubscriptionPopup(!isPremium && open)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

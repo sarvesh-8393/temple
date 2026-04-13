@@ -34,17 +34,27 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const { user, refreshUser } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [isRefreshingUser, setIsRefreshingUser] = useState(true);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const isPremiumMember = mounted && user?.plan === 'premium';
+  const isPremiumMember = mounted && !isRefreshingUser && user?.plan === 'premium';
   const sortedBookingHistory = mounted && user?.bookingHistory
     ? [...user.bookingHistory].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
     : [];
 
   useEffect(() => {
     setMounted(true);
+
     // Refresh user data when component mounts to ensure latest plan status
-    refreshUser();
+    const syncUser = async () => {
+      try {
+        await refreshUser();
+      } finally {
+        setIsRefreshingUser(false);
+      }
+    };
+
+    syncUser();
   }, []);
 
   useEffect(() => {
@@ -66,7 +76,7 @@ export default function ProfilePage() {
     router.push('/payment?amount=299&templeName=TempleConnect&type=Premium%20Subscription');
   };
 
-  if (!mounted) {
+  if (!mounted || isRefreshingUser) {
     return (
       <main className="flex-1 p-4 md:p-8">
         <div className="mx-auto max-w-4xl">
@@ -148,7 +158,7 @@ export default function ProfilePage() {
               </h1>
               <Badge variant="outline" className="border-accent text-accent">
                 <Star className="mr-1 h-3 w-3" />
-                {mounted ? (user?.plan === 'premium' ? 'Premium Member' : 'Free Member') : 'Free Member'}
+                {mounted && !isRefreshingUser ? (user?.plan === 'premium' ? 'Premium Member' : 'Free Member') : 'Loading...'}
               </Badge>
             </div>
             <p className="mt-1 text-muted-foreground">
@@ -209,7 +219,7 @@ export default function ProfilePage() {
               </CardFooter>
             </Card>
 
-            {!isPremiumMember && (
+            {!isRefreshingUser && !isPremiumMember && (
               <Card className="relative flex flex-col border-2 border-accent shadow-lg">
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
                   Recommended

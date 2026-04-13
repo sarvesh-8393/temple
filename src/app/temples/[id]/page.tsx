@@ -58,7 +58,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function TempleDetailPage() {
   const params = useParams();
@@ -186,13 +185,6 @@ export default function TempleDetailPage() {
       </div>
     );
   }
-
-  const getAvailableTimes = (pooja: Pooja): string[] => {
-    if (pooja.time && pooja.time !== 'Flexible') {
-      return pooja.time.split(',').map(time => time.trim());
-    }
-    return [];
-  };
 
   const handleBookNow = (pooja: Pooja) => {
     setSelectedPooja(pooja);
@@ -382,18 +374,13 @@ export default function TempleDetailPage() {
                           <label htmlFor="time" className="text-right">
                             Time
                           </label>
-                          <Select value={selectedTime} onValueChange={setSelectedTime}>
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Select time" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {selectedPooja && getAvailableTimes(selectedPooja).map((time) => (
-                                <SelectItem key={time} value={time}>
-                                  {time}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Input
+                            id="time"
+                            type="time"
+                            value={selectedTime}
+                            onChange={(e) => setSelectedTime(e.target.value)}
+                            className="col-span-3"
+                          />
                         </div>
                       </div>
                       <div className="flex justify-end gap-2">
