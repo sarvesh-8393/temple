@@ -34,6 +34,24 @@ interface GoogleMapProps {
   isLoadingLocation?: boolean;
 }
 
+const LOCATION_VIEW_RADIUS_METERS = 1000;
+
+const createBoundsAroundLocation = (
+  location: { lat: number; lng: number },
+  radiusMeters: number
+) => {
+  const earthRadiusMeters = 6378137;
+  const latOffset = (radiusMeters / earthRadiusMeters) * (180 / Math.PI);
+  const lngOffset =
+    (radiusMeters / (earthRadiusMeters * Math.cos((location.lat * Math.PI) / 180))) *
+    (180 / Math.PI);
+
+  return {
+    southWest: { lat: location.lat - latOffset, lng: location.lng - lngOffset },
+    northEast: { lat: location.lat + latOffset, lng: location.lng + lngOffset }
+  };
+};
+
 const MapComponent: React.FC<GoogleMapProps> = ({
   temples,
   userLocation,
@@ -113,9 +131,12 @@ const MapComponent: React.FC<GoogleMapProps> = ({
       title: 'Your Location'
     });
 
-    // Center map on user location with zoom level for ~10km radius
-    googleMapRef.current.setCenter(userLocation);
-    googleMapRef.current.setZoom(11); // Zoom level 11 shows approximately 10km radius
+    // Fit map to a 3 km radius around the user's location.
+    const bounds = createBoundsAroundLocation(userLocation, LOCATION_VIEW_RADIUS_METERS);
+    const maps = (window as any).google?.maps;
+    if (maps) {
+      googleMapRef.current.fitBounds(new maps.LatLngBounds(bounds.southWest, bounds.northEast), 48);
+    }
   }, [userLocation]);
 
   // Update temple markers
@@ -233,10 +254,13 @@ const MapComponent: React.FC<GoogleMapProps> = ({
       markersRef.current.push(marker);
     });
 
-    // Always center on user location regardless of temples
+    // Keep the map focused on the user location with a 3 km radius view.
     if (userLocation) {
-      googleMapRef.current.setCenter(userLocation);
-      googleMapRef.current.setZoom(11); // Zoom level 11 shows approximately 10km radius
+      const bounds = createBoundsAroundLocation(userLocation, LOCATION_VIEW_RADIUS_METERS);
+      const maps = (window as any).google?.maps;
+      if (maps) {
+        googleMapRef.current.fitBounds(new maps.LatLngBounds(bounds.southWest, bounds.northEast), 48);
+      }
     }
   }, [temples, userLocation]);
 

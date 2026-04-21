@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 
 interface Image {
   imageUrl: string;
@@ -62,15 +63,22 @@ import { Input } from '@/components/ui/input';
 export default function TempleDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [temple, setTemple] = useState<Temple | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCrowdLoading, setIsCrowdLoading] = useState(false);
   const [showCrowdCount, setShowCrowdCount] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [selectedPooja, setSelectedPooja] = useState<Pooja | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const isPremiumMember = mounted && user?.plan === 'premium';
 
   const templeId = params?.id as string;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!templeId) {
@@ -99,7 +107,7 @@ export default function TempleDetailPage() {
   }, [templeId]);
 
   useEffect(() => {
-    if (!templeId || !showCrowdCount) {
+    if (!templeId || !showCrowdCount || !isPremiumMember) {
       return;
     }
 
@@ -141,7 +149,7 @@ export default function TempleDetailPage() {
       clearTimeout(autoStopTimer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [templeId, showCrowdCount]);
+  }, [templeId, showCrowdCount, isPremiumMember]);
 
 
   if (isLoading) {
@@ -262,7 +270,14 @@ export default function TempleDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {!showCrowdCount ? (
+                {!isPremiumMember ? (
+                  <div className="text-center rounded-lg p-6 bg-background border">
+                    <p className="text-sm text-muted-foreground mb-2">To see live crowd get the subscription.</p>
+                    <Button onClick={() => router.push('/profile')}>
+                      Get Subscription
+                    </Button>
+                  </div>
+                ) : !showCrowdCount ? (
                   <div className="text-center rounded-lg p-6 bg-background border">
                     <p className="text-sm text-muted-foreground mb-4">Click to view live crowd for 1 minute.</p>
                     <Button onClick={() => setShowCrowdCount(true)}>
