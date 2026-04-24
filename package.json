@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "export": "next export"
+    "export": "next export",
+    "fix-poojas:one": "node scripts/fix-pooja-images.js",
+    "fix-poojas:all": "node scripts/fix-all-temples.js",
+    "fix-poojas:ts": "ts-node scripts/fix-poojas.ts"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

@@ -110,12 +110,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     if (poojas && Array.isArray(poojas) && poojas.length > 0) {
+      const { PlaceHolderImages } = await import('@/lib/placeholder-images');
       temple.poojas = poojas.map((pooja: any) => ({
         name: pooja.name,
         description: pooja.description,
         price: pooja.price,
         time: pooja.times,
         tags: pooja.tags || [],
+        image: {
+          id: 'pooja-default',
+          imageUrl: PlaceHolderImages.find(img => img.id === 'pooja-havan')!.imageUrl
+        },
       }));
     }
 
